@@ -1,0 +1,11 @@
+SCRIPT_REAL("
+import numpy as np;
+import scipy;
+import scipy.stats;
+input = [.arg1, .arg2];
+types = unique(.arg2);
+if length(types) != 2:
+    return np.nan;
+output = stats.ttest_ind(.arg1[], .arg1[], equal_var = False)
+return output[1]",
+sum([Zmod]),attr([TC]))
