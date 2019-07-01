@@ -1,4 +1,5 @@
 SCRIPT_REAL("
+# note: set worksheet view to non-aggregate
 import numpy as np;
 import pandas as pd;
 from scipy import stats;
