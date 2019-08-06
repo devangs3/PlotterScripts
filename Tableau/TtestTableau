@@ -20,4 +20,4 @@ else:
     print(output)
     return output[1];       
 ",
-sum([Zmod]),sum([TCN]))
+sum([Zmod]),attr([TCN]))
