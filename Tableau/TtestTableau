@@ -12,11 +12,11 @@ if len(types) != 2:
 else:
     df2 = input[input['category'] == types[0]];
     df3 = input[input['category'] == types[1]];
-    if len(df2) != len(df3):
-        output = stats.ttest_ind( df2['Z'], df3['Z'], equal_var = False);
-        print('Zm computing unequal lengths')
-    else:
-        output = stats.ttest_ind( df2['Z'], df3['Z']);
+    # if len(df2) != len(df3):
+        # output = stats.ttest_ind( df2['Z'], df3['Z'], equal_var = False);
+        # print('Zm computing unequal lengths')
+    # else:
+    output = stats.ttest_ind( df2['Z'], df3['Z']);
     print(output)
     return output[1];       
 ",
