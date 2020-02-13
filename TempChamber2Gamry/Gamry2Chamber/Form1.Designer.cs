@@ -31,7 +31,6 @@
             this.readTempBtn = new System.Windows.Forms.Button();
             this.startBtn = new System.Windows.Forms.Button();
             this.stopBtn = new System.Windows.Forms.Button();
-            this.readRHBtn = new System.Windows.Forms.Button();
             this.ipField = new System.Windows.Forms.TextBox();
             this.subnetField = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -41,6 +40,7 @@
             this.connectBtn = new System.Windows.Forms.Button();
             this.tempText = new System.Windows.Forms.Label();
             this.rhText = new System.Windows.Forms.Label();
+            this.readRHBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // readTempBtn
@@ -73,17 +73,6 @@
             this.stopBtn.TabIndex = 2;
             this.stopBtn.Text = "Stop profile";
             this.stopBtn.UseVisualStyleBackColor = true;
-            // 
-            // readRHBtn
-            // 
-            this.readRHBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.readRHBtn.Location = new System.Drawing.Point(66, 489);
-            this.readRHBtn.Name = "readRHBtn";
-            this.readRHBtn.Size = new System.Drawing.Size(341, 58);
-            this.readRHBtn.TabIndex = 0;
-            this.readRHBtn.Text = "Read Humidity";
-            this.readRHBtn.UseVisualStyleBackColor = true;
-            this.readRHBtn.Click += new System.EventHandler(this.readRHBtn_Click);
             // 
             // ipField
             // 
@@ -177,11 +166,23 @@
             this.rhText.TabIndex = 4;
             this.rhText.Text = "--";
             // 
+            // readRHBtn
+            // 
+            this.readRHBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.readRHBtn.Location = new System.Drawing.Point(66, 489);
+            this.readRHBtn.Name = "readRHBtn";
+            this.readRHBtn.Size = new System.Drawing.Size(341, 56);
+            this.readRHBtn.TabIndex = 5;
+            this.readRHBtn.Text = "Read Humidity";
+            this.readRHBtn.UseVisualStyleBackColor = true;
+            this.readRHBtn.Click += new System.EventHandler(this.readRHBtn_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(844, 639);
+            this.Controls.Add(this.readRHBtn);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.rhText);
@@ -192,7 +193,6 @@
             this.Controls.Add(this.ipField);
             this.Controls.Add(this.stopBtn);
             this.Controls.Add(this.startBtn);
-            this.Controls.Add(this.readRHBtn);
             this.Controls.Add(this.connectBtn);
             this.Controls.Add(this.readTempBtn);
             this.Name = "Form1";
@@ -207,7 +207,6 @@
         private System.Windows.Forms.Button readTempBtn;
         private System.Windows.Forms.Button startBtn;
         private System.Windows.Forms.Button stopBtn;
-        private System.Windows.Forms.Button readRHBtn;
         private System.Windows.Forms.TextBox ipField;
         private System.Windows.Forms.TextBox subnetField;
         private System.Windows.Forms.Label label1;
@@ -217,6 +216,7 @@
         private System.Windows.Forms.Button connectBtn;
         private System.Windows.Forms.Label tempText;
         private System.Windows.Forms.Label rhText;
+        private System.Windows.Forms.Button readRHBtn;
     }
 }
 
