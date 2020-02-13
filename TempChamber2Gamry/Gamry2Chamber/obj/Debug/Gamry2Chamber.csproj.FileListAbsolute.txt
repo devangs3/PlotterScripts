@@ -1,0 +1,9 @@
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TempChamber2Gamry\Gamry2Chamber\bin\Debug\Gamry2Chamber.exe.config
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TempChamber2Gamry\Gamry2Chamber\bin\Debug\Gamry2Chamber.exe
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TempChamber2Gamry\Gamry2Chamber\bin\Debug\Gamry2Chamber.pdb
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TempChamber2Gamry\Gamry2Chamber\obj\Debug\Gamry2Chamber.csprojAssemblyReference.cache
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TempChamber2Gamry\Gamry2Chamber\obj\Debug\Gamry2Chamber.Form1.resources
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TempChamber2Gamry\Gamry2Chamber\obj\Debug\Gamry2Chamber.Properties.Resources.resources
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TempChamber2Gamry\Gamry2Chamber\obj\Debug\Gamry2Chamber.csproj.GenerateResource.cache
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TempChamber2Gamry\Gamry2Chamber\obj\Debug\Gamry2Chamber.exe
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TempChamber2Gamry\Gamry2Chamber\obj\Debug\Gamry2Chamber.pdb
