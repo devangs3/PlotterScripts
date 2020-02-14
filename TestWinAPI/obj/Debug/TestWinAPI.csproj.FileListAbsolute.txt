@@ -5,3 +5,10 @@ C:\Users\dgs150030\Desktop\TestWinAPI\obj\Debug\TestWinAPI.MainForm.resources
 C:\Users\dgs150030\Desktop\TestWinAPI\obj\Debug\TestWinAPI.csproj.GenerateResource.cache
 C:\Users\dgs150030\Desktop\TestWinAPI\obj\Debug\TestWinAPI.exe
 C:\Users\dgs150030\Desktop\TestWinAPI\obj\Debug\TestWinAPI.pdb
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TestWinAPI\bin\Debug\TestWinAPI.exe
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TestWinAPI\bin\Debug\TestWinAPI.pdb
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TestWinAPI\obj\Debug\TestWinAPI.csprojAssemblyReference.cache
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TestWinAPI\obj\Debug\TestWinAPI.MainForm.resources
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TestWinAPI\obj\Debug\TestWinAPI.csproj.GenerateResource.cache
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TestWinAPI\obj\Debug\TestWinAPI.exe
+C:\Users\dgs150030\Documents\GitHub\PlotterScripts\TestWinAPI\obj\Debug\TestWinAPI.pdb

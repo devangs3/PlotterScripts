@@ -6,6 +6,8 @@ using System.Windows.Forms;
 using System.Data;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace TestWinAPI
 {
@@ -42,6 +44,9 @@ namespace TestWinAPI
 		[DllImport("user32.dll", CharSet=CharSet.Auto)]
 		public static extern int SendMessage(int hWnd, int msg, int wParam, IntPtr lParam);
 		
+		[DllImport("user32.dll")]
+		static extern bool SetForegroundWindow(IntPtr hWnd);
+
 		/// <summary>
 		/// The FindWindowEx API
 		/// </summary>
@@ -137,6 +142,7 @@ namespace TestWinAPI
 		{
 			int hwnd=0;
 			IntPtr hwndChild=IntPtr.Zero;
+			IntPtr hwndPtr = IntPtr.Zero;
 
 			//Get a handle for the Calculator Application main window
 			// hwnd=FindWindow(null, "C:\\Program Files(x86)\\Gamry Instruments\\Framework\\framework.exe");
@@ -153,7 +159,11 @@ namespace TestWinAPI
 
 					// pick gamry window title string as it changes with open file name 
 					if (process.MainWindowTitle.Contains("Gamry Instruments Framework"))
-						titleString = process.MainWindowTitle; 
+					{
+						titleString = process.MainWindowTitle;
+						hwndPtr = process.MainWindowHandle;
+						break;
+					}
 				}
 			}
 
@@ -171,16 +181,49 @@ namespace TestWinAPI
 				// get handle of toolbar 
 				// hwndChild = FindWindowEx((IntPtr)hwnd, IntPtr.Zero, "ToolBar", null);
 
+				// method A ///////////////////////// 
+				// send ctrl + W to open sequence manager 
+				// SendKeys.Send("^W");
+
+				// get handle of button run sequence 
+
+				// method B///////////////////////////
 				//Get a handle for the "run current" script button
 				// does not work for buttons on toolbars or in tabs!!!!
-				hwndChild = FindWindowEx((IntPtr)hwnd, IntPtr.Zero, "Button", "Run Current");
-				
+				// hwndChild = FindWindowEx((IntPtr)hwnd, IntPtr.Zero, "Button", "Run Current");
 
 				//send BN_CLICKED message
-				SendMessage((int)hwndChild, BN_CLICKED, 0, IntPtr.Zero);					
+				// SendMessage((int)hwndChild, BN_CLICKED, 0, IntPtr.Zero);					
 
+				// method C ///////////////////////////
+				// bool kkk = 
+				//SetForegroundWindow(hwndPtr);
+				//send ctrl + W to open "sequence wizard" dialog
+				//SendKeys.Send("^w");
+
+				// send alt + R to run sequence in dialog
+				// SendKeys.SendWait("%r");
+
+				// method D ///////////////////////////
+				// bool kkk = 
+				SetForegroundWindow(hwndPtr);
+				//send "sequence wizard" dialog from Experiment menu
+				SendKeys.Send("%xw");
+
+				// wait for sequence wizard to open 
+				Thread.Sleep(3000);
+
+				// search process handle for "sequence wizard" dialog 
+				Process[] p = Process.GetProcessesByName("Sequencer");
+				if (p[0] != null)
+				{
+					IntPtr h = p[0].MainWindowHandle;
+					SetForegroundWindow(h);
+					// send alt, R to run sequence in dialog
+					SendKeys.Send("%");
+					SendKeys.Send("r");
+				}				
 			}
-
 		}
 
 		private void btnCloseCalc_Click(object sender, System.EventArgs e)
