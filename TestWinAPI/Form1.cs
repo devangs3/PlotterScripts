@@ -167,9 +167,10 @@ namespace TestWinAPI
 				}
 			}
 
+
 			hwnd = FindWindow(null, titleString);
 
-			if (hwnd == 0)
+			if (hwnd == 0 || titleString == "")
 			{
 				if(MessageBox.Show("Couldn't find the application. Do you want to start it?","TestWinAPI",MessageBoxButtons.YesNo)== DialogResult.Yes)
 				{
