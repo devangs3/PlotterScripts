@@ -16,7 +16,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using System.Runtime.InteropServices;
-//using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 
 namespace Gamry2Chamber
 {
@@ -379,7 +379,7 @@ namespace Gamry2Chamber
             readRHBtn.PerformClick();
 
             // check if T reached setpoint 
-            int tempPt = Convert.ToInt32(tempText);
+            int tempPt = Convert.ToInt32(tempText.Text);
             int hiThreshold = Convert.ToInt32(HiPt.Value);
             int loThreshold = Convert.ToInt32(LoPt.Value);
             if (tempPt - loThreshold < 2 || hiThreshold - tempPt < 2)
@@ -588,35 +588,100 @@ namespace Gamry2Chamber
             // select files named EISPOT_##.DTA only             
             DirectoryInfo d = new DirectoryInfo(dataFolderName);
             FileInfo[] infos = d.GetFiles();
+            DataTable table = new DataTable();           
+            table.Columns.Add("run", typeof(int));
+            table.Columns.Add("frequency", typeof(float));
+            table.Columns.Add("Zmod", typeof(float));
+            table.Columns.Add("Zphase", typeof(float));
+            table.Columns.Add("Zreal", typeof(float));
+            table.Columns.Add("Zimag", typeof(float));
+
             foreach (FileInfo f in infos)
             {
                 if (f.Name.Contains("EISPOT"))
                 {
-                    // read file 
+                    // read file, check syntax here ! 
+                    string[] lines = File.ReadAllLines(f.Name);
 
+                    // remove header lines
+                    lines = lines.Skip(54).ToArray();
 
-                    // append to table 
+                    // read into table 
+                    foreach (string line in lines)
+                    {
+                        // split by space
+                        string[] col = line.Split(' ');
+
+                        if (col.Length ==  11) 
+                        {
+                            // append to table
+                            DataRow row = table.NewRow();
+                            // remove unnecesary columns and clean up  
+                            row.SetField("run", int.Parse(Convert.ToString(f.Name[9]))); // EISPOT_#N.DTA
+                            row.SetField("frequency", int.Parse(col[2]));
+                            row.SetField("Zmod", float.Parse(col[6]));
+                            row.SetField("Zphase", float.Parse(col[7]));
+                            row.SetField("Zreal", float.Parse(col[3]));
+                            row.SetField("Zimag", float.Parse(col[4]));                            
+                            table.Rows.Add(row);
+                        }
+                    }
                 }   
             }
 
-            // clean up and add columns 
+            // add columns with the a fixed value 
+            addColumnFixed<string>(table, "module", moduleField.Text);
+            addColumnFixed<string>(table, "batch", batchField.Text);
+            addColumnFixed<string>(table, "replicate", replicateField.Text);
+            addColumnFixed<int>(table, "TCN", Convert.ToInt16(tcnField.Text));            
+            addColumnFixed<int>(table, "timestamp", getEpochTimeStamp());
+            addColumnFixed<double>(table, "RH", Convert.ToDouble(rhText));
 
-
-
+            int tempPt = Convert.ToInt32(tempText.Text);
+            int hiThreshold = Convert.ToInt32(HiPt.Value);
+            int loThreshold = Convert.ToInt32(LoPt.Value);
+            if (tempPt - loThreshold < 2)
+                addColumnFixed<int>(table, "T", Convert.ToInt16(LoPt.Text));
+            else if (hiThreshold - tempPt < 2)
+                addColumnFixed<int>(table, "T", Convert.ToInt16(HiPt.Text));
+            
             // upload 
             try
             {
-                //await conn.OpenAsync();
-                // conn.Open();
-
-                // Insert some data
-                using (var cmd = new MySqlCommand())
+                // bulk upload 
+                StringBuilder sCommand = new StringBuilder("INSERT INTO User (FirstName, LastName) VALUES ");
+                List<string> Rows = new List<string>();
+                DataRow[] rows = table.Select();
+                for (int i = 0; i < rows.Length; i++)
                 {
-                    cmd.Connection = conn;
-                    cmd.CommandText = "INSERT INTO data (some_field) VALUES (@p)";
-                    cmd.Parameters.AddWithValue("p", "Hello world");
-                    // await cmd.ExecuteNonQueryAsync();
+                    Rows.Add(string.Format("('{0}','{1}','{2}',{3},{4},{5}," +
+                        "{6},{7},{8},{9},{10},{11},{12})",
+                        MySqlHelper.EscapeString(rows[i].Field<string>("module")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("batch")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("replicate")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("TCN")),                                              
+                        MySqlHelper.EscapeString(rows[i].Field<string>("run")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("timestamp")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("T")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("RH")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("frequency")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("Zmod")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("Zphase")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("Zreal")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("Zimag"))
+                    ));
                 }
+                sCommand.Append(string.Join(",", Rows));
+                sCommand.Append(";");                   
+                using (MySqlCommand myCmd = new MySqlCommand(sCommand.ToString(), conn))
+                {
+                    myCmd.CommandType = CommandType.Text;
+                    Console.WriteLine("Writing to database ...");
+                    int r = myCmd.ExecuteNonQuery();
+                    Console.WriteLine("%d rows written! ",r);
+                }
+                
+
             }
             catch (Exception ex)
             {
@@ -624,7 +689,14 @@ namespace Gamry2Chamber
             }
         }
 
-        private void TriggerGamryScan()
+        void addColumnFixed<T>( DataTable table, string columnName, T value)
+        {
+            System.Data.DataColumn newColumn = new System.Data.DataColumn(columnName, typeof(T));
+            newColumn.DefaultValue = value;
+            table.Columns.Add(newColumn);
+        }
+
+            private void TriggerGamryScan()
         {
             int hwnd = 0;
             IntPtr hwndChild = IntPtr.Zero;
@@ -652,8 +724,6 @@ namespace Gamry2Chamber
                     }
                 }
             }
-
-
             hwnd = FindWindow(null, titleString);
 
             if (hwnd == 0 || titleString == "")
@@ -685,6 +755,7 @@ namespace Gamry2Chamber
                 }
             }
         }
+
 
             private void label17_Click(object sender, EventArgs e)
         {

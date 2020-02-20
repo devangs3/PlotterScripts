@@ -450,7 +450,7 @@
             this.databaseField.Name = "databaseField";
             this.databaseField.Size = new System.Drawing.Size(557, 47);
             this.databaseField.TabIndex = 13;
-            this.databaseField.Text = "bio_semi.test1";
+            this.databaseField.Text = "bio_semi.tempcycler";
             // 
             // label10
             // 
