@@ -296,7 +296,7 @@ namespace Gamry2Chamber
                 var connString = "Server=" + linkField.Text +
                     " ;User ID=" + userField.Text + // "@%" +
                     ";Password=" + passField.Text +
-                    ";Database=" + databaseField.Text +
+                    ";Database=" + schemaField.Text +
                     ";Port=" + portSQLField.Text;
 
                 using (conn = new MySqlConnection(connString))
@@ -392,6 +392,9 @@ namespace Gamry2Chamber
 
                 // double backup; rename files 
                 RenameLatestFiles();
+
+                //increment TCN 
+                tcnField.Text = Convert.ToString(Convert.ToDouble(tcnField.Text) + 0.5);
 
             }
             // end of process, restart timer 
@@ -530,7 +533,7 @@ namespace Gamry2Chamber
             connectChamberBtn.Enabled = v;
 
             linkField.Enabled = v;
-            databaseField.Enabled = v;
+            schemaField.Enabled = v;
             userField.Enabled = v;
             passField.Enabled = v;
             portSQLField.Enabled = v;
@@ -633,7 +636,7 @@ namespace Gamry2Chamber
             addColumnFixed<string>(table, "module", moduleField.Text);
             addColumnFixed<string>(table, "batch", batchField.Text);
             addColumnFixed<string>(table, "replicate", replicateField.Text);
-            addColumnFixed<int>(table, "TCN", Convert.ToInt16(tcnField.Text));            
+            addColumnFixed<double>(table, "TCN", Convert.ToDouble(tcnField.Text));            
             addColumnFixed<int>(table, "timestamp", getEpochTimeStamp());
             addColumnFixed<double>(table, "RH", Convert.ToDouble(rhText));
 
@@ -649,7 +652,11 @@ namespace Gamry2Chamber
             try
             {
                 // bulk upload 
-                StringBuilder sCommand = new StringBuilder("INSERT INTO User (FirstName, LastName) VALUES ");
+                StringBuilder sCommand = new StringBuilder("INSERT INTO" + 
+                    tableField.Text + 
+                    "(module, batch, replicate, TCN, run,"+
+                    "timestamp, T, RH, frequency, Zmod, Zphase,"+
+                    "Zreal, Zimag) VALUES ");
                 List<string> Rows = new List<string>();
                 DataRow[] rows = table.Select();
                 for (int i = 0; i < rows.Length; i++)
@@ -679,8 +686,7 @@ namespace Gamry2Chamber
                     Console.WriteLine("Writing to database ...");
                     int r = myCmd.ExecuteNonQuery();
                     Console.WriteLine("%d rows written! ",r);
-                }
-                
+                }                
 
             }
             catch (Exception ex)

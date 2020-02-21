@@ -55,7 +55,7 @@
             this.rhText = new System.Windows.Forms.Label();
             this.readRHBtn = new System.Windows.Forms.Button();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.databaseField = new System.Windows.Forms.TextBox();
+            this.schemaField = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.linkField = new System.Windows.Forms.TextBox();
             this.portSQLField = new System.Windows.Forms.TextBox();
@@ -89,6 +89,8 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.toolTipGamry = new System.Windows.Forms.ToolTip(this.components);
+            this.label19 = new System.Windows.Forms.Label();
+            this.tableField = new System.Windows.Forms.TextBox();
             this.tabPage5.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tsField)).BeginInit();
@@ -424,7 +426,9 @@
             // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.databaseField);
+            this.tabPage3.Controls.Add(this.tableField);
+            this.tabPage3.Controls.Add(this.label19);
+            this.tabPage3.Controls.Add(this.schemaField);
             this.tabPage3.Controls.Add(this.label10);
             this.tabPage3.Controls.Add(this.linkField);
             this.tabPage3.Controls.Add(this.portSQLField);
@@ -443,14 +447,14 @@
             this.tabPage3.Text = "Cloud connection";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
-            // databaseField
+            // schemaField
             // 
-            this.databaseField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.databaseField.Location = new System.Drawing.Point(322, 103);
-            this.databaseField.Name = "databaseField";
-            this.databaseField.Size = new System.Drawing.Size(557, 47);
-            this.databaseField.TabIndex = 13;
-            this.databaseField.Text = "bio_semi.tempcycler";
+            this.schemaField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.schemaField.Location = new System.Drawing.Point(322, 103);
+            this.schemaField.Name = "schemaField";
+            this.schemaField.Size = new System.Drawing.Size(557, 47);
+            this.schemaField.TabIndex = 13;
+            this.schemaField.Text = "bio_semi";
             // 
             // label10
             // 
@@ -474,7 +478,7 @@
             // portSQLField
             // 
             this.portSQLField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.portSQLField.Location = new System.Drawing.Point(322, 295);
+            this.portSQLField.Location = new System.Drawing.Point(322, 364);
             this.portSQLField.Name = "portSQLField";
             this.portSQLField.Size = new System.Drawing.Size(240, 47);
             this.portSQLField.TabIndex = 12;
@@ -483,7 +487,7 @@
             // userField
             // 
             this.userField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.userField.Location = new System.Drawing.Point(322, 166);
+            this.userField.Location = new System.Drawing.Point(322, 235);
             this.userField.Name = "userField";
             this.userField.Size = new System.Drawing.Size(240, 47);
             this.userField.TabIndex = 3;
@@ -493,7 +497,7 @@
             // passField
             // 
             this.passField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.passField.Location = new System.Drawing.Point(322, 228);
+            this.passField.Location = new System.Drawing.Point(322, 297);
             this.passField.Name = "passField";
             this.passField.Size = new System.Drawing.Size(240, 47);
             this.passField.TabIndex = 3;
@@ -504,7 +508,7 @@
             // 
             this.label13.AutoSize = true;
             this.label13.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label13.Location = new System.Drawing.Point(49, 298);
+            this.label13.Location = new System.Drawing.Point(49, 367);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(81, 39);
             this.label13.TabIndex = 11;
@@ -516,15 +520,15 @@
             this.label15.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label15.Location = new System.Drawing.Point(49, 106);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(165, 39);
+            this.label15.Size = new System.Drawing.Size(145, 39);
             this.label15.TabIndex = 4;
-            this.label15.Text = "Database";
+            this.label15.Text = "Schema";
             // 
             // label11
             // 
             this.label11.AutoSize = true;
             this.label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.Location = new System.Drawing.Point(49, 169);
+            this.label11.Location = new System.Drawing.Point(49, 238);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(187, 39);
             this.label11.TabIndex = 4;
@@ -547,7 +551,7 @@
             // 
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.Location = new System.Drawing.Point(49, 231);
+            this.label12.Location = new System.Drawing.Point(49, 300);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(170, 39);
             this.label12.TabIndex = 4;
@@ -797,6 +801,25 @@
             this.toolTipGamry.ToolTipTitle = "Warning!";
             this.toolTipGamry.Popup += new System.Windows.Forms.PopupEventHandler(this.toolTipDataPath_Popup);
             // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label19.Location = new System.Drawing.Point(49, 170);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(103, 39);
+            this.label19.TabIndex = 14;
+            this.label19.Text = "Table";
+            // 
+            // tableField
+            // 
+            this.tableField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tableField.Location = new System.Drawing.Point(322, 167);
+            this.tableField.Name = "tableField";
+            this.tableField.Size = new System.Drawing.Size(557, 47);
+            this.tableField.TabIndex = 15;
+            this.tableField.Text = "tempcycler";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -871,7 +894,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage7;
-        private System.Windows.Forms.TextBox databaseField;
+        private System.Windows.Forms.TextBox schemaField;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.TabPage tabPage6;
         private System.Windows.Forms.Button dataPathBtn;
@@ -891,6 +914,8 @@
         private System.Windows.Forms.TextBox batchField;
         private System.Windows.Forms.TextBox moduleField;
         private System.Windows.Forms.Label label18;
+        private System.Windows.Forms.TextBox tableField;
+        private System.Windows.Forms.Label label19;
     }
 }
 
