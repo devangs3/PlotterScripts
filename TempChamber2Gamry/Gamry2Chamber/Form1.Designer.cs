@@ -91,6 +91,7 @@
             this.toolTipGamry = new System.Windows.Forms.ToolTip(this.components);
             this.label19 = new System.Windows.Forms.Label();
             this.tableField = new System.Windows.Forms.TextBox();
+            this.button2 = new System.Windows.Forms.Button();
             this.tabPage5.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tsField)).BeginInit();
@@ -113,6 +114,7 @@
             // 
             // tabPage5
             // 
+            this.tabPage5.Controls.Add(this.button2);
             this.tabPage5.Controls.Add(this.dataPathBtn);
             this.tabPage5.Controls.Add(this.groupBox1);
             this.tabPage5.Controls.Add(this.stopBtn);
@@ -197,21 +199,22 @@
             // 
             // tsField
             // 
+            this.tsField.DecimalPlaces = 1;
             this.tsField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tsField.Location = new System.Drawing.Point(656, 36);
             this.tsField.Minimum = new decimal(new int[] {
-            10,
+            1,
             0,
             0,
-            0});
+            65536});
             this.tsField.Name = "tsField";
             this.tsField.Size = new System.Drawing.Size(93, 47);
             this.tsField.TabIndex = 10;
             this.tsField.Value = new decimal(new int[] {
-            55,
+            1,
             0,
             0,
-            0});
+            65536});
             this.tsField.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
             // 
             // label7
@@ -286,10 +289,10 @@
             this.LoPt.Size = new System.Drawing.Size(93, 47);
             this.LoPt.TabIndex = 6;
             this.LoPt.Value = new decimal(new int[] {
-            50,
+            30,
             0,
             0,
-            -2147483648});
+            0});
             this.LoPt.ValueChanged += new System.EventHandler(this.LoPt_ValueChanged);
             // 
             // label14
@@ -320,7 +323,7 @@
             this.HiPt.Size = new System.Drawing.Size(93, 47);
             this.HiPt.TabIndex = 6;
             this.HiPt.Value = new decimal(new int[] {
-            150,
+            50,
             0,
             0,
             0});
@@ -820,6 +823,16 @@
             this.tableField.TabIndex = 15;
             this.tableField.Text = "tempcycler";
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(254, 287);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(40, 14);
+            this.button2.TabIndex = 18;
+            this.button2.Text = "test";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -916,6 +929,7 @@
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.TextBox tableField;
         private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.Button button2;
     }
 }
 

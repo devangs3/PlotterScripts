@@ -26,6 +26,7 @@ namespace Gamry2Chamber
         private byte[] bytes = new byte[1024];
         string dataFolderName = "";
         private MySqlConnection conn;
+        string connString="";
 
         // DLL inserts for controlling Gamry Framework ////////////////
         /// <summary>
@@ -293,7 +294,7 @@ namespace Gamry2Chamber
             {
                 // connect to mySQL server
                 // source = https://mysqlconnector.net/tutorials/basic-api/
-                var connString = "Server=" + linkField.Text +
+                connString = "Server=" + linkField.Text +
                     " ;User ID=" + userField.Text + // "@%" +
                     ";Password=" + passField.Text +
                     ";Database=" + schemaField.Text +
@@ -302,35 +303,16 @@ namespace Gamry2Chamber
                 using (conn = new MySqlConnection(connString))
                 {
                     try
-                    {
-                        //await conn.OpenAsync();
-
+                    {                  
+                        // open database connection 
                         conn.Open();
 
-                        //// Insert some data
-                        //using (var cmd = new MySqlCommand())
-                        //{
-                        //    cmd.Connection = conn;
-                        //    cmd.CommandText = "INSERT INTO data (some_field) VALUES (@p)";
-                        //    cmd.Parameters.AddWithValue("p", "Hello world");
-                        //    await cmd.ExecuteNonQueryAsync();
-                        //}
-
-                        // Retrieve all rows
-                        // method 1 
-                        /*
+                        // test query
                         using (var cmd = new MySqlCommand("SELECT * " +
-                            "FROM bio_semi.test1 " +
-                            "limit 0, 100;", conn))
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                            while (await reader.ReadAsync())
-                                Console.WriteLine(reader.GetString(0));
-                        */
-
-                        // method 2 
-                        using (var cmd = new MySqlCommand("SELECT * " +
-                            "FROM bio_semi.test1 " +
-                            "limit 0, 100;", conn))
+                            "FROM " +
+                            schemaField.Text+"."+
+                            tableField.Text +
+                            " limit 0, 10;", conn))
                         {
 
                             using (MySqlDataReader reader = cmd.ExecuteReader())
@@ -357,6 +339,9 @@ namespace Gamry2Chamber
 
                         // switch to next tab
                         tabControl1.SelectedIndex += 1;
+
+                        // close connection
+                        conn.Close();
                         
                     }
                     catch (Exception ex)
@@ -379,13 +364,16 @@ namespace Gamry2Chamber
             readRHBtn.PerformClick();
 
             // check if T reached setpoint 
-            int tempPt = Convert.ToInt32(tempText.Text);
+            double tempPt = Math.Round(Convert.ToDouble(tempText.Text));
             int hiThreshold = Convert.ToInt32(HiPt.Value);
             int loThreshold = Convert.ToInt32(LoPt.Value);
-            if (tempPt - loThreshold < 2 || hiThreshold - tempPt < 2)
+            if (tempPt - loThreshold < 1 || hiThreshold - tempPt < 1)
             {
                 // trigger measure 
                 TriggerGamryScan();
+
+                // wait for measure to complete, 1 MHZ to 1 Hz, 5 loops
+                Thread.Sleep(12*60*1000);
 
                 // cleanup and upload to SQL
                 Upload2mySQL();
@@ -415,7 +403,18 @@ namespace Gamry2Chamber
                 // exit this function 
                 return;
             }
-                        
+
+            // check data path is synced with Gamry 
+            if (dataPathBtn.BackColor != Color.Green )
+            {
+                // show error 
+                MessageBox.Show("Check Gamry is active and path is synced using the data path button", "Gamry sync error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // exit this function 
+                return;
+            }
+
             // turn button green
             startBtn.BackColor = Color.Green;
             startBtn.ForeColor = Color.White;
@@ -504,6 +503,10 @@ namespace Gamry2Chamber
             {
                 // bool kkk = 
                 SetForegroundWindow(hwndPtr);
+
+                // wait for the main window to open 
+                Thread.Sleep(3000);
+
                 //open "configure path' dialog box from options menu 
                 SendKeys.Send("%op");
 
@@ -592,40 +595,41 @@ namespace Gamry2Chamber
             DirectoryInfo d = new DirectoryInfo(dataFolderName);
             FileInfo[] infos = d.GetFiles();
             DataTable table = new DataTable();           
-            table.Columns.Add("run", typeof(int));
-            table.Columns.Add("frequency", typeof(float));
-            table.Columns.Add("Zmod", typeof(float));
-            table.Columns.Add("Zphase", typeof(float));
-            table.Columns.Add("Zreal", typeof(float));
-            table.Columns.Add("Zimag", typeof(float));
+            table.Columns.Add("run", typeof(string));
+            table.Columns.Add("frequency", typeof(string));
+            table.Columns.Add("Zmod", typeof(string));
+            table.Columns.Add("Zphase", typeof(string));
+            table.Columns.Add("Zreal", typeof(string));
+            table.Columns.Add("Zimag", typeof(string));
 
             foreach (FileInfo f in infos)
             {
                 if (f.Name.Contains("EISPOT"))
                 {
-                    // read file, check syntax here ! 
-                    string[] lines = File.ReadAllLines(f.Name);
+                    // read file
+                    string[] lines = File.ReadAllLines(f.FullName);
 
                     // remove header lines
-                    lines = lines.Skip(54).ToArray();
+                    lines = lines.Skip(57).ToArray();
 
                     // read into table 
                     foreach (string line in lines)
                     {
                         // split by space
-                        string[] col = line.Split(' ');
+                        string[] col = line.Split('\t');
 
-                        if (col.Length ==  11) 
+                        if (col.Length ==  12) 
                         {
                             // append to table
                             DataRow row = table.NewRow();
                             // remove unnecesary columns and clean up  
-                            row.SetField("run", int.Parse(Convert.ToString(f.Name[9]))); // EISPOT_#N.DTA
-                            row.SetField("frequency", int.Parse(col[2]));
-                            row.SetField("Zmod", float.Parse(col[6]));
-                            row.SetField("Zphase", float.Parse(col[7]));
-                            row.SetField("Zreal", float.Parse(col[3]));
-                            row.SetField("Zimag", float.Parse(col[4]));                            
+                            char[] index = { f.Name[8] };
+                            row.SetField("run", new string(index)); // EISPOT_#N.DTA
+                            row.SetField("frequency", col[3]);
+                            row.SetField("Zmod", col[7]);
+                            row.SetField("Zphase", col[8]);
+                            row.SetField("Zreal", col[4]);
+                            row.SetField("Zimag", col[5]);                            
                             table.Rows.Add(row);
                         }
                     }
@@ -636,23 +640,25 @@ namespace Gamry2Chamber
             addColumnFixed<string>(table, "module", moduleField.Text);
             addColumnFixed<string>(table, "batch", batchField.Text);
             addColumnFixed<string>(table, "replicate", replicateField.Text);
-            addColumnFixed<double>(table, "TCN", Convert.ToDouble(tcnField.Text));            
-            addColumnFixed<int>(table, "timestamp", getEpochTimeStamp());
-            addColumnFixed<double>(table, "RH", Convert.ToDouble(rhText));
+            addColumnFixed<string>(table, "TCN", tcnField.Text);            
+            addColumnFixed<string>(table, "timestamp", getEpochTimeStamp().ToString());
+            addColumnFixed<string>(table, "RH", rhText.Text);
 
-            int tempPt = Convert.ToInt32(tempText.Text);
+            double tempPt = Convert.ToDouble(tempText.Text);
             int hiThreshold = Convert.ToInt32(HiPt.Value);
             int loThreshold = Convert.ToInt32(LoPt.Value);
-            if (tempPt - loThreshold < 2)
-                addColumnFixed<int>(table, "T", Convert.ToInt16(LoPt.Text));
-            else if (hiThreshold - tempPt < 2)
-                addColumnFixed<int>(table, "T", Convert.ToInt16(HiPt.Text));
-            
+            if (tempPt - loThreshold < 1)
+                addColumnFixed<string>(table, "T", LoPt.Text);
+            else if (hiThreshold - tempPt < 1)
+                addColumnFixed<string>(table, "T", HiPt.Text);
+            else
+                addColumnFixed<string>(table, "T", "1.11");
+
             // upload 
             try
             {
                 // bulk upload 
-                StringBuilder sCommand = new StringBuilder("INSERT INTO" + 
+                StringBuilder sCommand = new StringBuilder("INSERT INTO " + 
                     tableField.Text + 
                     "(module, batch, replicate, TCN, run,"+
                     "timestamp, T, RH, frequency, Zmod, Zphase,"+
@@ -660,7 +666,7 @@ namespace Gamry2Chamber
                 List<string> Rows = new List<string>();
                 DataRow[] rows = table.Select();
                 for (int i = 0; i < rows.Length; i++)
-                {
+                {                    
                     Rows.Add(string.Format("('{0}','{1}','{2}',{3},{4},{5}," +
                         "{6},{7},{8},{9},{10},{11},{12})",
                         MySqlHelper.EscapeString(rows[i].Field<string>("module")),
@@ -668,7 +674,7 @@ namespace Gamry2Chamber
                         MySqlHelper.EscapeString(rows[i].Field<string>("replicate")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("TCN")),                                              
                         MySqlHelper.EscapeString(rows[i].Field<string>("run")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("timestamp")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("timestamp")),                        
                         MySqlHelper.EscapeString(rows[i].Field<string>("T")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("RH")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("frequency")),
@@ -679,15 +685,21 @@ namespace Gamry2Chamber
                     ));
                 }
                 sCommand.Append(string.Join(",", Rows));
-                sCommand.Append(";");                   
-                using (MySqlCommand myCmd = new MySqlCommand(sCommand.ToString(), conn))
+                sCommand.Append(";");
+                using (conn = new MySqlConnection(connString))
                 {
-                    myCmd.CommandType = CommandType.Text;
-                    Console.WriteLine("Writing to database ...");
-                    int r = myCmd.ExecuteNonQuery();
-                    Console.WriteLine("%d rows written! ",r);
-                }                
-
+                    // open database connection 
+                    conn.Open();
+                    using (MySqlCommand myCmd = new MySqlCommand(sCommand.ToString(), conn))
+                    {
+                        myCmd.CommandType = CommandType.Text;
+                        Console.WriteLine("Writing to database using query ...");
+                        Console.WriteLine(sCommand.ToString());
+                        int r = myCmd.ExecuteNonQuery();
+                        Console.WriteLine("%d rows written! ", r);
+                    }
+                    conn.Close();
+                }
             }
             catch (Exception ex)
             {
@@ -743,6 +755,10 @@ namespace Gamry2Chamber
             {                
                 // bool kkk = 
                 SetForegroundWindow(hwndPtr);
+
+                // wait for main window to open 
+                Thread.Sleep(3000);
+
                 //send "sequence wizard" dialog from Experiment menu
                 SendKeys.Send("%xw");
 
@@ -759,6 +775,14 @@ namespace Gamry2Chamber
                     SendKeys.Send("%");
                     SendKeys.Send("r");
                 }
+                // wait for sequence wizard to open 
+                Thread.Sleep(3000);
+
+                //send "OK" to potentiostat select dialog 
+                SendKeys.Send("{ESC}");
+
+                // wait for sequence wizard to open 
+                Thread.Sleep(3000);
             }
         }
 
@@ -776,6 +800,11 @@ namespace Gamry2Chamber
         private void pictureBox1_Click(object sender, EventArgs e)
         {
             // go to UTD website 
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            // RenameLatestFiles();
         }
     }
 }
