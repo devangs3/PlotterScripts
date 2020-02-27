@@ -1,0 +1,65 @@
+class GROUPDATAFILESINI
+	ivar _GroupName
+	ivar _GroupType
+	ivar _IniFile
+	ivar _IniSection
+	ivar _Grouping
+
+	cfunction New (argv)
+		self = ObjectNew (GROUPDATAFILESINI)
+		self._Init (argv)
+		self
+		return
+
+	ifunction CheckAuth()
+		TRUE
+		return
+		
+	ifunction _Init (argv)
+
+
+		_IniFile = argv[0]
+		_IniSection = argv[1]
+		
+		_GroupType = Index(Config(_IniFile.Value(), _IniSection.Value(), "TYPE"))
+		_GroupName = Config(_IniFile.Value(), _IniSection.Value(), "NAME")
+
+		if ((_GroupType eq NIL) or (_GroupName eq NIL))
+			_Grouping = FALSE
+		else
+			_Grouping = TRUE
+		return
+
+	ifunction HeadlineDescription()
+		description = "Group Data Files from INI"
+		description
+		return
+
+	ifunction Description()
+		description = "Group Data Files from INI"
+		description
+		return
+
+	ifunction MassageOutputFilename()
+		; NOP
+		return
+		
+	ifunction ParameterCheck()
+		self.CheckAuth()
+		
+		if (TRUE eq _Grouping)
+
+			Sequencer.DataFileGroup ().SetGroupName (_GroupName)
+			Sequencer.DataFileGroup ().SetGroupType (_GroupType)
+
+		TRUE
+		return
+		
+	ifunction Run()
+		if (TRUE eq _Grouping)
+			Sequencer.DataFileGroup ().SetGroupName (_GroupName)
+			Sequencer.DataFileGroup ().SetGroupType (_GroupType)
+		TRUE
+		return
+
+

@@ -1,0 +1,54 @@
+class SETINIFLAG
+	ivar _IniFile
+	ivar _IniSection
+	ivar _IniFlag
+	ivar _IniFlagValue
+
+	cfunction New (argv)
+		self = ObjectNew (SETINIFLAG)
+		self._Init (argv)
+		self
+		return
+
+	ifunction CheckAuth()
+		TRUE
+		return
+		
+	ifunction _Init (argv)
+
+
+		_IniFile = argv[0]
+		_IniSection = argv[1]
+		_IniFlag = argv[2]
+		_IniFlagValue = argv[3]
+		
+		return
+
+	ifunction HeadlineDescription()
+		description = "Set an INI File Flag"
+		description
+		return
+
+	ifunction Description()
+		description = "Set an INI File Flag"
+		description
+		return
+
+	ifunction MassageOutputFilename()
+		; NOP
+		return
+		
+	ifunction ParameterCheck()
+		self.CheckAuth()
+		aValue = Config(_IniFile.Value (), _IniSection.Value (), _IniFlag.Value ())
+
+		TRUE
+		return
+		
+	ifunction Run()
+		SetConfig(_IniFile.Value (), _IniSection.Value (), _IniFlag.Value (), _IniFlagValue.Value ())
+
+		TRUE
+		return
+
+

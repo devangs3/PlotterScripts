@@ -211,10 +211,10 @@
             this.tsField.Size = new System.Drawing.Size(93, 47);
             this.tsField.TabIndex = 10;
             this.tsField.Value = new decimal(new int[] {
-            1,
+            10,
             0,
             0,
-            65536});
+            0});
             this.tsField.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
             // 
             // label7
@@ -240,6 +240,7 @@
             // 
             // tcnField
             // 
+            this.tcnField.DecimalPlaces = 1;
             this.tcnField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tcnField.Location = new System.Drawing.Point(354, 36);
             this.tcnField.Maximum = new decimal(new int[] {
@@ -289,10 +290,10 @@
             this.LoPt.Size = new System.Drawing.Size(93, 47);
             this.LoPt.TabIndex = 6;
             this.LoPt.Value = new decimal(new int[] {
-            30,
+            50,
             0,
             0,
-            0});
+            -2147483648});
             this.LoPt.ValueChanged += new System.EventHandler(this.LoPt_ValueChanged);
             // 
             // label14
@@ -323,7 +324,7 @@
             this.HiPt.Size = new System.Drawing.Size(93, 47);
             this.HiPt.TabIndex = 6;
             this.HiPt.Value = new decimal(new int[] {
-            50,
+            150,
             0,
             0,
             0});

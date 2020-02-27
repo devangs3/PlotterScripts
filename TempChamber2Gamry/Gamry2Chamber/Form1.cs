@@ -373,6 +373,7 @@ namespace Gamry2Chamber
                 TriggerGamryScan();
 
                 // wait for measure to complete, 1 MHZ to 1 Hz, 5 loops
+                Console.WriteLine("Measuring at %d", getEpochTimeStamp());
                 Thread.Sleep(12*60*1000);
 
                 // cleanup and upload to SQL
@@ -496,7 +497,15 @@ namespace Gamry2Chamber
             {
                 if (MessageBox.Show("Couldn't find Gamry Framework. Do you want to start it?", "TestWinAPI", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    System.Diagnostics.Process.Start("C:\\Program Files(x86)\\Gamry Instruments\\Framework\\framework.exe");
+                    try
+                    {
+                        System.Diagnostics.Process.Start("C:\\Program Files(x86)\\Gamry Instruments\\Framework\\framework.exe");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("EXE not found ! ");
+                    
+                    }
                 }
             }
             else
