@@ -17,6 +17,7 @@ class GROUPDATAFILESINI
 		
 	ifunction _Init (argv)
 
+		SeqPstat.SetSilent (TRUE)
 
 		_IniFile = argv[0]
 		_IniSection = argv[1]

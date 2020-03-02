@@ -48,3 +48,5 @@ C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber
 C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber\obj\Debug\Gamry2Chamber.csproj.CopyComplete
 C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber\obj\Debug\Gamry2Chamber.exe
 C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber\obj\Debug\Gamry2Chamber.pdb
+C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber\bin\Debug\INIFileParser.dll
+C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber\bin\Debug\INIFileParser.xml

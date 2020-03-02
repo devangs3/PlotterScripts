@@ -1,4 +1,6 @@
-﻿namespace Gamry2Chamber
+﻿using System;
+
+namespace Gamry2Chamber
 {
     partial class Form1
     {
@@ -29,8 +31,10 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.button2 = new System.Windows.Forms.Button();
             this.dataPathBtn = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.radioButton2 = new System.Windows.Forms.RadioButton();
@@ -49,12 +53,18 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.rhspText = new System.Windows.Forms.Label();
+            this.tspText = new System.Windows.Forms.Label();
+            this.readRhspBtn = new System.Windows.Forms.Button();
+            this.readTspBtn = new System.Windows.Forms.Button();
             this.nextBtn = new System.Windows.Forms.Button();
-            this.readTempBtn = new System.Windows.Forms.Button();
-            this.tempText = new System.Windows.Forms.Label();
-            this.rhText = new System.Windows.Forms.Label();
-            this.readRHBtn = new System.Windows.Forms.Button();
+            this.readTpvBtn = new System.Windows.Forms.Button();
+            this.tpvText = new System.Windows.Forms.Label();
+            this.rhpvText = new System.Windows.Forms.Label();
+            this.readRhpvBtn = new System.Windows.Forms.Button();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.tableField = new System.Windows.Forms.TextBox();
+            this.label19 = new System.Windows.Forms.Label();
             this.schemaField = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.linkField = new System.Windows.Forms.TextBox();
@@ -89,9 +99,6 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.toolTipGamry = new System.Windows.Forms.ToolTip(this.components);
-            this.label19 = new System.Windows.Forms.Label();
-            this.tableField = new System.Windows.Forms.TextBox();
-            this.button2 = new System.Windows.Forms.Button();
             this.tabPage5.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tsField)).BeginInit();
@@ -137,6 +144,16 @@
             this.tabPage5.TabIndex = 3;
             this.tabPage5.Text = "Profile";
             this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(254, 287);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(40, 14);
+            this.button2.TabIndex = 18;
+            this.button2.Text = "test";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click_2);
             // 
             // dataPathBtn
             // 
@@ -362,11 +379,15 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.rhspText);
+            this.tabPage2.Controls.Add(this.tspText);
+            this.tabPage2.Controls.Add(this.readRhspBtn);
+            this.tabPage2.Controls.Add(this.readTspBtn);
             this.tabPage2.Controls.Add(this.nextBtn);
-            this.tabPage2.Controls.Add(this.readTempBtn);
-            this.tabPage2.Controls.Add(this.tempText);
-            this.tabPage2.Controls.Add(this.rhText);
-            this.tabPage2.Controls.Add(this.readRHBtn);
+            this.tabPage2.Controls.Add(this.readTpvBtn);
+            this.tabPage2.Controls.Add(this.tpvText);
+            this.tabPage2.Controls.Add(this.rhpvText);
+            this.tabPage2.Controls.Add(this.readRhpvBtn);
             this.tabPage2.Location = new System.Drawing.Point(4, 38);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
@@ -374,6 +395,49 @@
             this.tabPage2.TabIndex = 2;
             this.tabPage2.Text = "Test chamber";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // rhspText
+            // 
+            this.rhspText.AutoSize = true;
+            this.rhspText.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rhspText.Location = new System.Drawing.Point(848, 256);
+            this.rhspText.Name = "rhspText";
+            this.rhspText.Size = new System.Drawing.Size(35, 33);
+            this.rhspText.TabIndex = 10;
+            this.rhspText.Text = "--";
+            // 
+            // tspText
+            // 
+            this.tspText.AutoSize = true;
+            this.tspText.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tspText.Location = new System.Drawing.Point(848, 132);
+            this.tspText.Name = "tspText";
+            this.tspText.Size = new System.Drawing.Size(35, 33);
+            this.tspText.TabIndex = 9;
+            this.tspText.Text = "--";
+            this.tspText.Click += new System.EventHandler(this.label20_Click);
+            // 
+            // readRhspBtn
+            // 
+            this.readRhspBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.readRhspBtn.Location = new System.Drawing.Point(555, 247);
+            this.readRhspBtn.Name = "readRhspBtn";
+            this.readRhspBtn.Size = new System.Drawing.Size(287, 56);
+            this.readRhspBtn.TabIndex = 8;
+            this.readRhspBtn.Text = "Read RHSP (%)";
+            this.readRhspBtn.UseVisualStyleBackColor = true;
+            this.readRhspBtn.Click += new System.EventHandler(this.readRhspBtn_Click);
+            // 
+            // readTspBtn
+            // 
+            this.readTspBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.readTspBtn.Location = new System.Drawing.Point(555, 122);
+            this.readTspBtn.Name = "readTspBtn";
+            this.readTspBtn.Size = new System.Drawing.Size(287, 58);
+            this.readTspBtn.TabIndex = 7;
+            this.readTspBtn.Text = "Read TSP (°C)";
+            this.readTspBtn.UseVisualStyleBackColor = true;
+            this.readTspBtn.Click += new System.EventHandler(this.readTspBtn_Click);
             // 
             // nextBtn
             // 
@@ -386,47 +450,49 @@
             this.nextBtn.UseVisualStyleBackColor = true;
             this.nextBtn.Click += new System.EventHandler(this.button2_Click);
             // 
-            // readTempBtn
+            // readTpvBtn
             // 
-            this.readTempBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.readTempBtn.Location = new System.Drawing.Point(195, 122);
-            this.readTempBtn.Name = "readTempBtn";
-            this.readTempBtn.Size = new System.Drawing.Size(290, 58);
-            this.readTempBtn.TabIndex = 0;
-            this.readTempBtn.Text = "Read T PV (°C)";
-            this.readTempBtn.UseVisualStyleBackColor = true;
-            this.readTempBtn.Click += new System.EventHandler(this.readTempBtn_Click);
+            this.readTpvBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.readTpvBtn.Location = new System.Drawing.Point(57, 122);
+            this.readTpvBtn.Name = "readTpvBtn";
+            this.readTpvBtn.Size = new System.Drawing.Size(290, 58);
+            this.readTpvBtn.TabIndex = 0;
+            this.readTpvBtn.Text = "Read TPV (°C)";
+            this.readTpvBtn.UseVisualStyleBackColor = true;
+            this.readTpvBtn.Click += new System.EventHandler(this.readTempBtn_Click);
             // 
-            // tempText
+            // tpvText
             // 
-            this.tempText.AutoSize = true;
-            this.tempText.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tempText.Location = new System.Drawing.Point(619, 132);
-            this.tempText.Name = "tempText";
-            this.tempText.Size = new System.Drawing.Size(41, 39);
-            this.tempText.TabIndex = 4;
-            this.tempText.Text = "--";
+            this.tpvText.AutoSize = true;
+            this.tpvText.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tpvText.Location = new System.Drawing.Point(353, 132);
+            this.tpvText.Name = "tpvText";
+            this.tpvText.Size = new System.Drawing.Size(35, 33);
+            this.tpvText.TabIndex = 4;
+            this.tpvText.Text = "--";
+            this.tpvText.Click += new System.EventHandler(this.tpvText_Click);
             // 
-            // rhText
+            // rhpvText
             // 
-            this.rhText.AutoSize = true;
-            this.rhText.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rhText.Location = new System.Drawing.Point(619, 264);
-            this.rhText.Name = "rhText";
-            this.rhText.Size = new System.Drawing.Size(41, 39);
-            this.rhText.TabIndex = 4;
-            this.rhText.Text = "--";
+            this.rhpvText.AutoSize = true;
+            this.rhpvText.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rhpvText.Location = new System.Drawing.Point(353, 256);
+            this.rhpvText.Name = "rhpvText";
+            this.rhpvText.Size = new System.Drawing.Size(35, 33);
+            this.rhpvText.TabIndex = 4;
+            this.rhpvText.Text = "--";
+            this.rhpvText.Click += new System.EventHandler(this.rhpvText_Click);
             // 
-            // readRHBtn
+            // readRhpvBtn
             // 
-            this.readRHBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.readRHBtn.Location = new System.Drawing.Point(195, 255);
-            this.readRHBtn.Name = "readRHBtn";
-            this.readRHBtn.Size = new System.Drawing.Size(290, 56);
-            this.readRHBtn.TabIndex = 5;
-            this.readRHBtn.Text = "Read RH% PV";
-            this.readRHBtn.UseVisualStyleBackColor = true;
-            this.readRHBtn.Click += new System.EventHandler(this.readRHBtn_Click);
+            this.readRhpvBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.readRhpvBtn.Location = new System.Drawing.Point(57, 247);
+            this.readRhpvBtn.Name = "readRhpvBtn";
+            this.readRhpvBtn.Size = new System.Drawing.Size(290, 56);
+            this.readRhpvBtn.TabIndex = 5;
+            this.readRhpvBtn.Text = "Read RHPV (%)";
+            this.readRhpvBtn.UseVisualStyleBackColor = true;
+            this.readRhpvBtn.Click += new System.EventHandler(this.readRHBtn_Click);
             // 
             // tabPage3
             // 
@@ -450,6 +516,25 @@
             this.tabPage3.TabIndex = 1;
             this.tabPage3.Text = "Cloud connection";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // tableField
+            // 
+            this.tableField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tableField.Location = new System.Drawing.Point(322, 167);
+            this.tableField.Name = "tableField";
+            this.tableField.Size = new System.Drawing.Size(557, 47);
+            this.tableField.TabIndex = 15;
+            this.tableField.Text = "tempcycler";
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label19.Location = new System.Drawing.Point(49, 170);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(103, 39);
+            this.label19.TabIndex = 14;
+            this.label19.Text = "Table";
             // 
             // schemaField
             // 
@@ -776,18 +861,20 @@
             // 
             // pictureBox2
             // 
+            this.pictureBox2.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox2.Image")));
             this.pictureBox2.ImageLocation = "C:\\Users\\dgs150030\\Documents\\GitHub\\PlotterScripts\\TempChamber2Gamry\\Gamry2Chambe" +
     "r\\TI.jpg";
+            this.pictureBox2.InitialImage = ((System.Drawing.Image)(resources.GetObject("pictureBox2.InitialImage")));
             this.pictureBox2.Location = new System.Drawing.Point(438, 122);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(524, 331);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 1;
             this.pictureBox2.TabStop = false;
-            this.pictureBox2.Click += new System.EventHandler(this.pictureBox2_Click);
             // 
             // pictureBox1
             // 
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
             this.pictureBox1.ImageLocation = "C:\\Users\\dgs150030\\Documents\\GitHub\\PlotterScripts\\TempChamber2Gamry\\Gamry2Chambe" +
     "r\\UTD.jpg";
             this.pictureBox1.Location = new System.Drawing.Point(60, 147);
@@ -796,7 +883,6 @@
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
-            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // toolTipGamry
             // 
@@ -804,35 +890,6 @@
             this.toolTipGamry.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Warning;
             this.toolTipGamry.ToolTipTitle = "Warning!";
             this.toolTipGamry.Popup += new System.Windows.Forms.PopupEventHandler(this.toolTipDataPath_Popup);
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label19.Location = new System.Drawing.Point(49, 170);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(103, 39);
-            this.label19.TabIndex = 14;
-            this.label19.Text = "Table";
-            // 
-            // tableField
-            // 
-            this.tableField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tableField.Location = new System.Drawing.Point(322, 167);
-            this.tableField.Name = "tableField";
-            this.tableField.Size = new System.Drawing.Size(557, 47);
-            this.tableField.TabIndex = 15;
-            this.tableField.Text = "tempcycler";
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(254, 287);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(40, 14);
-            this.button2.TabIndex = 18;
-            this.button2.Text = "test";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click_1);
             // 
             // Form1
             // 
@@ -867,6 +924,16 @@
 
         }
 
+        private void label17_Click(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.TabPage tabPage5;
@@ -884,10 +951,10 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.Button readTempBtn;
-        private System.Windows.Forms.Label tempText;
-        private System.Windows.Forms.Label rhText;
-        private System.Windows.Forms.Button readRHBtn;
+        private System.Windows.Forms.Button readTpvBtn;
+        private System.Windows.Forms.Label tpvText;
+        private System.Windows.Forms.Label rhpvText;
+        private System.Windows.Forms.Button readRhpvBtn;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox linkField;
@@ -931,6 +998,10 @@
         private System.Windows.Forms.TextBox tableField;
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label tspText;
+        private System.Windows.Forms.Button readRhspBtn;
+        private System.Windows.Forms.Button readTspBtn;
+        private System.Windows.Forms.Label rhspText;
     }
 }
 

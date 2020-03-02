@@ -16,7 +16,11 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using System.Runtime.InteropServices;
-using MySql.Data.MySqlClient;
+using IniParser;
+using IniParser.Model;
+// using MySql.Data.MySqlClient;
+// using IniParser;
+// using IniParser.Model;
 
 namespace Gamry2Chamber
 {
@@ -26,7 +30,13 @@ namespace Gamry2Chamber
         private byte[] bytes = new byte[1024];
         string dataFolderName = "";
         private MySqlConnection conn;
-        string connString="";
+        string connString = "";
+        string frameworkPath = "C:\\Program Files (x86)\\Gamry Instruments\\Framework\\framework.exe";
+        string scriptsPath = "C:\\ProgramData\\Gamry Instruments\\Framework\\Scripts\\";
+        string iniPath = "C:\\ProgramData\\Gamry Instruments\\Framework\\UTDallas.INI";
+        string scanScript = "scangamry.exp";
+        string contScript = "contgamry.exp";
+
 
         // DLL inserts for controlling Gamry Framework ////////////////
         /// <summary>
@@ -139,10 +149,11 @@ namespace Gamry2Chamber
                     // clear byte buffer after use  
                     Array.Clear(bytes, 0, bytes.Length);
 
-                    // sample T and RH
-                    readTempBtn.PerformClick();
-                    readRHBtn.PerformClick();
-
+                    // sample T and RH PV and SP 
+                    readTpvBtn.PerformClick();
+                    readRhpvBtn.PerformClick();
+                    readTspBtn.PerformClick();
+                    readRhspBtn.PerformClick();
                 }
                 catch (ArgumentNullException ane)
                 {
@@ -167,89 +178,31 @@ namespace Gamry2Chamber
         // read temperature
         private void readTempBtn_Click(object sender, EventArgs e)
         {
-            try
-            {
-                // Encode the data string into a byte array.    
-                byte[] msg = Encoding.ASCII.GetBytes(":SOURCE:CLOOP1:PVALUE?");
-
-                // Send the data through the socket.    
-                int bytesSent = sender1.Send(msg);
-
-                // Receive the response from the remote device.    
-                int bytesRec = sender1.Receive(bytes);
-                Console.WriteLine("Temperature Process Value = {0}",
-                    Encoding.ASCII.GetString(bytes, 0, bytesRec));
-
-                // convert byte to string 
-                String rxstring = Encoding.Default.GetString(bytes);
-                if (rxstring.Length > 0)
-                    tempText.Text = rxstring;
-
-                // Release the socket.    
-                // sender1.Shutdown(SocketShutdown.Both);
-                // sender1.Close();
-
-                // clear byte buffer after use 
-                Array.Clear(bytes, 0, bytes.Length);
-
-            }
-            catch (ArgumentNullException ane)
-            {
-                Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
-            }
-            catch (SocketException se)
-            {
-                Console.WriteLine("SocketException : {0}", se.ToString());
-            }
-            catch (Exception ee)
-            {
-                Console.WriteLine("Unexpected exception : {0}", ee.ToString());
-            }
-
+            // send command to chamber
+            // refer to F4T programming resources for commands 
+            sendSocketComm(":SOURCE:CLOOP1:PVALUE?", ref tpvText);
         }
 
         // read RH%
         private void readRHBtn_Click(object sender, EventArgs e)
         {
-            try
-            {
-                // Encode the data string into a byte array.    
-                byte[] msg = Encoding.ASCII.GetBytes(":SOURCE:CLOOP2:PVALUE?");
+            // send command to chamber
+            // refer to F4T programming resources for commands 
+            sendSocketComm(":SOURCE:CLOOP2:PVALUE?", ref rhpvText);
+        }
+        
+        private void readTspBtn_Click(object sender, EventArgs e)
+        {
+            // send command to chamber
+            // refer to F4T programming resources for commands 
+            sendSocketComm(":SOURCE:CLOOP1:SVALUE?", ref tspText);
+        }
 
-                // Send the data through the socket.    
-                int bytesSent = sender1.Send(msg);
-
-                // Receive the response from the remote device.    
-                int bytesRec = sender1.Receive(bytes);
-                Console.WriteLine("RH Process Value = {0}",
-                    Encoding.ASCII.GetString(bytes, 0, bytesRec));
-
-                // convert byte to string 
-                String rxstring = Encoding.Default.GetString(bytes);
-                if (rxstring.Length > 0)
-                    rhText.Text = rxstring;
-
-                // Release the socket.    
-                // sender1.Shutdown(SocketShutdown.Both);
-                // sender1.Close();
-
-                // clear byte buffer after use 
-                Array.Clear(bytes, 0, bytes.Length);
-
-            }
-            catch (ArgumentNullException ane)
-            {
-                Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
-            }
-            catch (SocketException se)
-            {
-                Console.WriteLine("SocketException : {0}", se.ToString());
-            }
-            catch (Exception ee)
-            {
-                Console.WriteLine("Unexpected exception : {0}", ee.ToString());
-            }
-
+        private void readRhspBtn_Click(object sender, EventArgs e)
+        {
+            // send command to chamber
+            // refer to F4T programming resources for commands 
+            sendSocketComm(":SOURCE:CLOOP2:SVALUE?", ref rhspText);
         }
 
         private void LoPt_ValueChanged(object sender, EventArgs e)
@@ -303,14 +256,14 @@ namespace Gamry2Chamber
                 using (conn = new MySqlConnection(connString))
                 {
                     try
-                    {                  
+                    {
                         // open database connection 
                         conn.Open();
 
                         // test query
                         using (var cmd = new MySqlCommand("SELECT * " +
                             "FROM " +
-                            schemaField.Text+"."+
+                            schemaField.Text + "." +
                             tableField.Text +
                             " limit 0, 10;", conn))
                         {
@@ -342,7 +295,7 @@ namespace Gamry2Chamber
 
                         // close connection
                         conn.Close();
-                        
+
                     }
                     catch (Exception ex)
                     {
@@ -359,12 +312,14 @@ namespace Gamry2Chamber
             // pause timer 
             timer1.Enabled = false;
 
-            // sample T and RH
-            readTempBtn.PerformClick();
-            readRHBtn.PerformClick();
+            // sample T and RH, PV and SP
+            readTpvBtn.PerformClick();
+            readRhpvBtn.PerformClick();
+            readTspBtn.PerformClick();
+            readRhspBtn.PerformClick();
 
             // check if T reached setpoint 
-            double tempPt = Math.Round(Convert.ToDouble(tempText.Text));
+            double tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
             int hiThreshold = Convert.ToInt32(HiPt.Value);
             int loThreshold = Convert.ToInt32(LoPt.Value);
             if (tempPt - loThreshold < 1 || hiThreshold - tempPt < 1)
@@ -373,8 +328,15 @@ namespace Gamry2Chamber
                 TriggerGamryScan();
 
                 // wait for measure to complete, 1 MHZ to 1 Hz, 5 loops
-                Console.WriteLine("Measuring at %d", getEpochTimeStamp());
-                Thread.Sleep(12*60*1000);
+                // check INI file for flag == DONE
+                string flagValue;
+                do
+                {
+                    // wait 
+                    Thread.Sleep(10000);
+                    // try flag read 
+                    flagValue = readINI(iniPath, "FLAGSECTION", "FLAG1");
+                } while (flagValue != "DONE");
 
                 // cleanup and upload to SQL
                 Upload2mySQL();
@@ -385,12 +347,23 @@ namespace Gamry2Chamber
                 //increment TCN 
                 tcnField.Text = Convert.ToString(Convert.ToDouble(tcnField.Text) + 0.5);
 
+                // reset INI flag 
+                writeINI(iniPath, "FLAGSECTION", "FLAG1", "READY");
+
+                // write new setpoint 
+                string newTSP = "";
+                // !!! change setpoint based on previous setpoint 
+                if (tspText.Text == Convert.ToString(LoPt.Value))
+                { newTSP = Convert.ToString(HiPt.Value); }
+                else 
+                { newTSP = Convert.ToString(LoPt.Value); }
+                sendSocketComm(":SOURCE:CLOOP1:SPOINT"+newTSP);
             }
             // end of process, restart timer 
             timer1.Enabled = true;
             timer1.Start();
         }
-             
+
 
         private void startBtn_Click(object sender, EventArgs e)
         {
@@ -398,15 +371,15 @@ namespace Gamry2Chamber
             if (connectChamberBtn.BackColor != Color.Green || connectSQLBtn.BackColor != Color.Green)
             {
                 // show error 
-                MessageBox.Show("Check chamber and cloud connectivity", "Connectivity error", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error );
+                MessageBox.Show("Check chamber and cloud connectivity", "Connectivity error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 // exit this function 
                 return;
             }
 
             // check data path is synced with Gamry 
-            if (dataPathBtn.BackColor != Color.Green )
+            if (dataPathBtn.BackColor != Color.Green)
             {
                 // show error 
                 MessageBox.Show("Check Gamry is active and path is synced using the data path button", "Gamry sync error",
@@ -415,6 +388,15 @@ namespace Gamry2Chamber
                 // exit this function 
                 return;
             }
+
+            // check if chamber power is on and controller is active 
+            // show error 
+            MessageBox.Show("Check chamber is powered on and conditioning switch is ON", "Check chamber switches",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                  
+            // send high setpoint to chamber to start 
+            // no profile needed on chamber controller ! :) 
+            sendSocketComm(":SOURCE: CLOOP#:SPOINT"+Convert.ToString(HiPt.Value));
 
             // turn button green
             startBtn.BackColor = Color.Green;
@@ -426,7 +408,7 @@ namespace Gamry2Chamber
             // enable timer 
             timer1.Enabled = true;
             timer1.Start();
-        }       
+        }
 
         private void stopBtn_Click(object sender, EventArgs e)
         {
@@ -449,90 +431,21 @@ namespace Gamry2Chamber
         // sets data path in Gamry 
         private void pathBtn_Click(object sender, EventArgs e)
         {
-            
-            // select data path folder ////////////////////////
+            // select folder 
             DialogResult result = folderBrowserDialog1.ShowDialog();
             if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog1.SelectedPath))
             {
-                dataFolderName = folderBrowserDialog1.SelectedPath;
-                // System.Windows.Forms.MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
-            }
-            else
-            {
-                return;
-            }
-
-            // Change path in Gamry /////////////////////////////
-            int hwnd = 0;
-            IntPtr hwndChild = IntPtr.Zero;
-            IntPtr hwndPtr = IntPtr.Zero;
-
-            //Get a handle for the Calculator Application main window
-            // hwnd=FindWindow(null, "C:\\Program Files(x86)\\Gamry Instruments\\Framework\\framework.exe");
-
-            // get all open window names 
-            Process[] processlist = Process.GetProcesses();
-            String titleString = "";
-            foreach (Process process in processlist)
-            {
-                // pick windows with titles 
-                if (!String.IsNullOrEmpty(process.MainWindowTitle))
-                {
-                    // Console.WriteLine("Process: {0} ID: {1} Window title: {2}", process.ProcessName, process.Id, process.MainWindowTitle);
-
-                    // pick gamry window title string as it changes with open file name 
-                    if (process.MainWindowTitle.Contains("Gamry Instruments Framework"))
-                    {
-                        titleString = process.MainWindowTitle;
-                        hwndPtr = process.MainWindowHandle;
-                        break;
-                    }
-                }
-            }
-
-
-            hwnd = FindWindow(null, titleString);
-
-            if (hwnd == 0 || titleString == "")
-            {
-                if (MessageBox.Show("Couldn't find Gamry Framework. Do you want to start it?", "TestWinAPI", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                {
-                    try
-                    {
-                        System.Diagnostics.Process.Start("C:\\Program Files(x86)\\Gamry Instruments\\Framework\\framework.exe");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("EXE not found ! ");
-                    
-                    }
-                }
-            }
-            else
-            {
-                // bool kkk = 
-                SetForegroundWindow(hwndPtr);
-
-                // wait for the main window to open 
-                Thread.Sleep(3000);
-
-                //open "configure path' dialog box from options menu 
-                SendKeys.Send("%op");
-
-                // wait for sequence wizard to open 
-                Thread.Sleep(3000);
-
-                // move to DTA in configure path dialog
-                SendKeys.Send("{TAB}{TAB}");
-                // set data folder path 
-                SendKeys.Send(dataFolderName);
-                // hit return key 
-                SendKeys.Send("{ENTER}");
-
+                // change INI path 
+                writeINI(iniPath, "GROUPING1", "NAME", folderBrowserDialog1.SelectedPath);
                 // data path is now set and active
                 dataPathBtn.BackColor = Color.Green;
                 dataPathBtn.ForeColor = Color.White;
-
+            }
+            else
+            {
+                // data path is now set and active
+                dataPathBtn.BackColor = Color.Red;
+                dataPathBtn.ForeColor = Color.White;
             }
         }
 
@@ -590,11 +503,11 @@ namespace Gamry2Chamber
                 // rename files with name EISPOT_##.DTA
                 // replace text EISPOT                
                 File.Move(f.FullName, f.FullName.Replace("EISPOT", timestampnow + "_" +
-                    moduleField.Text + "_" + 
+                    moduleField.Text + "_" +
                     batchField.Text + "_" +
                     replicateField.Text + "_" +
-                    Convert.ToString(tcnField.Value) 
-                    ));                    
+                    Convert.ToString(tcnField.Value)
+                    ));
             }
         }
 
@@ -603,7 +516,7 @@ namespace Gamry2Chamber
             // select files named EISPOT_##.DTA only             
             DirectoryInfo d = new DirectoryInfo(dataFolderName);
             FileInfo[] infos = d.GetFiles();
-            DataTable table = new DataTable();           
+            DataTable table = new DataTable();
             table.Columns.Add("run", typeof(string));
             table.Columns.Add("frequency", typeof(string));
             table.Columns.Add("Zmod", typeof(string));
@@ -627,7 +540,7 @@ namespace Gamry2Chamber
                         // split by space
                         string[] col = line.Split('\t');
 
-                        if (col.Length ==  12) 
+                        if (col.Length == 12)
                         {
                             // append to table
                             DataRow row = table.NewRow();
@@ -638,22 +551,22 @@ namespace Gamry2Chamber
                             row.SetField("Zmod", col[7]);
                             row.SetField("Zphase", col[8]);
                             row.SetField("Zreal", col[4]);
-                            row.SetField("Zimag", col[5]);                            
+                            row.SetField("Zimag", col[5]);
                             table.Rows.Add(row);
                         }
                     }
-                }   
+                }
             }
 
             // add columns with the a fixed value 
             addColumnFixed<string>(table, "module", moduleField.Text);
             addColumnFixed<string>(table, "batch", batchField.Text);
             addColumnFixed<string>(table, "replicate", replicateField.Text);
-            addColumnFixed<string>(table, "TCN", tcnField.Text);            
+            addColumnFixed<string>(table, "TCN", tcnField.Text);
             addColumnFixed<string>(table, "timestamp", getEpochTimeStamp().ToString());
-            addColumnFixed<string>(table, "RH", rhText.Text);
+            addColumnFixed<string>(table, "RH", rhpvText.Text);
 
-            double tempPt = Convert.ToDouble(tempText.Text);
+            double tempPt = Convert.ToDouble(tpvText.Text);
             int hiThreshold = Convert.ToInt32(HiPt.Value);
             int loThreshold = Convert.ToInt32(LoPt.Value);
             if (tempPt - loThreshold < 1)
@@ -667,23 +580,23 @@ namespace Gamry2Chamber
             try
             {
                 // bulk upload 
-                StringBuilder sCommand = new StringBuilder("INSERT INTO " + 
-                    tableField.Text + 
-                    "(module, batch, replicate, TCN, run,"+
-                    "timestamp, T, RH, frequency, Zmod, Zphase,"+
+                StringBuilder sCommand = new StringBuilder("INSERT INTO " +
+                    tableField.Text +
+                    "(module, batch, replicate, TCN, run," +
+                    "timestamp, T, RH, frequency, Zmod, Zphase," +
                     "Zreal, Zimag) VALUES ");
                 List<string> Rows = new List<string>();
                 DataRow[] rows = table.Select();
                 for (int i = 0; i < rows.Length; i++)
-                {                    
+                {
                     Rows.Add(string.Format("('{0}','{1}','{2}',{3},{4},{5}," +
                         "{6},{7},{8},{9},{10},{11},{12})",
                         MySqlHelper.EscapeString(rows[i].Field<string>("module")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("batch")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("replicate")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("TCN")),                                              
+                        MySqlHelper.EscapeString(rows[i].Field<string>("TCN")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("run")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("timestamp")),                        
+                        MySqlHelper.EscapeString(rows[i].Field<string>("timestamp")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("T")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("RH")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("frequency")),
@@ -716,104 +629,167 @@ namespace Gamry2Chamber
             }
         }
 
-        void addColumnFixed<T>( DataTable table, string columnName, T value)
+        void addColumnFixed<T>(DataTable table, string columnName, T value)
         {
             System.Data.DataColumn newColumn = new System.Data.DataColumn(columnName, typeof(T));
             newColumn.DefaultValue = value;
             table.Columns.Add(newColumn);
         }
 
-            private void TriggerGamryScan()
+        private void TriggerGamryScan()
         {
-            int hwnd = 0;
-            IntPtr hwndChild = IntPtr.Zero;
-            IntPtr hwndPtr = IntPtr.Zero;
-
-            //Get a handle for the Calculator Application main window
-            // hwnd=FindWindow(null, "C:\\Program Files(x86)\\Gamry Instruments\\Framework\\framework.exe");
-
-            // get all open window names 
-            Process[] processlist = Process.GetProcesses();
-            String titleString = "";
-            foreach (Process process in processlist)
-            {
-                // pick windows with titles 
-                if (!String.IsNullOrEmpty(process.MainWindowTitle))
-                {
-                    // Console.WriteLine("Process: {0} ID: {1} Window title: {2}", process.ProcessName, process.Id, process.MainWindowTitle);
-
-                    // pick gamry window title string as it changes with open file name 
-                    if (process.MainWindowTitle.Contains("Gamry Instruments Framework"))
-                    {
-                        titleString = process.MainWindowTitle;
-                        hwndPtr = process.MainWindowHandle;
-                        break;
-                    }
-                }
-            }
-            hwnd = FindWindow(null, titleString);
-
-            if (hwnd == 0 || titleString == "")
-            {
-                if (MessageBox.Show("Couldn't find the application. Do you want to start it?", "TestWinAPI", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                {
-                    System.Diagnostics.Process.Start("C:\\Program Files(x86)\\Gamry Instruments\\Framework\\framework.exe");
-                }
-            }
-            else
-            {                
-                // bool kkk = 
-                SetForegroundWindow(hwndPtr);
-
-                // wait for main window to open 
-                Thread.Sleep(3000);
-
-                //send "sequence wizard" dialog from Experiment menu
-                SendKeys.Send("%xw");
-
-                // wait for sequence wizard to open 
-                Thread.Sleep(3000);
-
-                // search process handle for "sequence wizard" dialog 
-                Process[] p = Process.GetProcessesByName("Sequencer");
-                if (p[0] != null)
-                {
-                    IntPtr h = p[0].MainWindowHandle;
-                    SetForegroundWindow(h);
-                    // send alt, R to run sequence in dialog
-                    SendKeys.Send("%");
-                    SendKeys.Send("r");
-                }
-                // wait for sequence wizard to open 
-                Thread.Sleep(3000);
-
-                //send "OK" to potentiostat select dialog 
-                SendKeys.Send("{ESC}");
-
-                // wait for sequence wizard to open 
-                Thread.Sleep(3000);
-            }
+            send2cmd(frameworkPath + " " + scriptsPath + scanScript);
         }
 
-
-            private void label17_Click(object sender, EventArgs e)
+        // run something on a hidden cmd window 
+        private void send2cmd(string arguments)
         {
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd.exe";
+            // startInfo.Arguments = "/C copy /b Image1.jpg + Archive.rar Image2.jpg";
+            startInfo.Arguments = arguments;
+            process.StartInfo = startInfo;
+            process.Start();
+        }
+
+        private string readINI(string filepath, string section, string varname)
+        {
+            var parser = new FileIniDataParser();
+            IniData data = parser.ReadFile(filepath);
+            return data[section][varname];
+        }
+
+        private void writeINI(string filepath, string section, string varname, string value)
+        {
+            var parser = new FileIniDataParser();
+            IniData data = parser.ReadFile(filepath);
+            data[section][varname] = value;
+            parser.WriteFile(filepath, data);
+        }
+
+        // send and receive 
+        private void sendSocketComm(string v, ref Label labelHandle)
+        {
+            try
+            {
+                // Encode the data string into a byte array.    
+                byte[] msg = Encoding.ASCII.GetBytes(v);
+
+                // Send the data through the socket.    
+                int bytesSent = sender1.Send(msg);
+
+                // Receive the response from the remote device.    
+                int bytesRec = sender1.Receive(bytes);
+                Console.WriteLine("{0}",
+                    Encoding.ASCII.GetString(bytes, 0, bytesRec));
+
+                // convert byte to string 
+                String rxstring = Encoding.Default.GetString(bytes);
+                if (rxstring.Length > 0)
+                    labelHandle.Text = rxstring;
+
+                // Release the socket.    
+                // sender1.Shutdown(SocketShutdown.Both);
+                // sender1.Close();
+
+                // clear byte buffer after use 
+                Array.Clear(bytes, 0, bytes.Length);
+
+            }
+            catch (ArgumentNullException ane)
+            {
+                Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
+            }
+            catch (SocketException se)
+            {
+                Console.WriteLine("SocketException : {0}", se.ToString());
+            }
+            catch (Exception ee)
+            {
+                Console.WriteLine("Unexpected exception : {0}", ee.ToString());
+            }
 
         }
+        // only send 
+        private void sendSocketComm(string v)
+        {
+            try
+            {
+                // Encode the data string into a byte array.    
+                byte[] msg = Encoding.ASCII.GetBytes(v);
+
+                // Send the data through the socket.    
+                int bytesSent = sender1.Send(msg);
+
+                // Receive the response from the remote device.    
+                int bytesRec = sender1.Receive(bytes);
+                Console.WriteLine("{0}",
+                    Encoding.ASCII.GetString(bytes, 0, bytesRec));
+
+                // convert byte to string 
+                String rxstring = Encoding.Default.GetString(bytes);
+                if (rxstring.Length > 0)
+                { 
+                    //labelHandle.Text = rxstring; 
+                }
+
+                // Release the socket.    
+                // sender1.Shutdown(SocketShutdown.Both);
+                // sender1.Close();
+
+                // clear byte buffer after use 
+                Array.Clear(bytes, 0, bytes.Length);
+
+            }
+            catch (ArgumentNullException ane)
+            {
+                Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
+            }
+            catch (SocketException se)
+            {
+                Console.WriteLine("SocketException : {0}", se.ToString());
+            }
+            catch (Exception ee)
+            {
+                Console.WriteLine("Unexpected exception : {0}", ee.ToString());
+            }
+
+        }
+
 
         private void pictureBox2_Click(object sender, EventArgs e)
         {
             // got to TI website 
+            System.Diagnostics.Process.Start("http://ti.com");
         }
 
         private void pictureBox1_Click(object sender, EventArgs e)
         {
             // go to UTD website 
+            System.Diagnostics.Process.Start("http://utdallas.edu");
+        }        
+
+        private void label20_Click(object sender, EventArgs e)
+        {
+
         }
 
-        private void button2_Click_1(object sender, EventArgs e)
+
+        private void button2_Click_2(object sender, EventArgs e)
         {
-            // RenameLatestFiles();
+
+        }
+
+        private void rhpvText_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tpvText_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
