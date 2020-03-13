@@ -170,7 +170,6 @@ namespace Gamry2Chamber
             // 
             this.groupBox1.Controls.Add(this.radioButton2);
             this.groupBox1.Controls.Add(this.radioButton1);
-            this.groupBox1.Enabled = false;
             this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox1.Location = new System.Drawing.Point(580, 216);
             this.groupBox1.Name = "groupBox1";
@@ -178,6 +177,7 @@ namespace Gamry2Chamber
             this.groupBox1.TabIndex = 16;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Mode";
+            this.groupBox1.Enter += new System.EventHandler(this.groupBox1_Enter);
             // 
             // radioButton2
             // 
@@ -191,6 +191,7 @@ namespace Gamry2Chamber
             this.radioButton2.TabStop = true;
             this.radioButton2.Text = "Level";
             this.radioButton2.UseVisualStyleBackColor = true;
+            this.radioButton2.CheckedChanged += new System.EventHandler(this.radioButton2_CheckedChanged);
             // 
             // radioButton1
             // 
@@ -404,6 +405,7 @@ namespace Gamry2Chamber
             this.rhspText.Name = "rhspText";
             this.rhspText.Size = new System.Drawing.Size(35, 33);
             this.rhspText.TabIndex = 10;
+            this.rhspText.Tag = "rhspText";
             this.rhspText.Text = "--";
             // 
             // tspText
@@ -414,6 +416,7 @@ namespace Gamry2Chamber
             this.tspText.Name = "tspText";
             this.tspText.Size = new System.Drawing.Size(35, 33);
             this.tspText.TabIndex = 9;
+            this.tspText.Tag = "tspText";
             this.tspText.Text = "--";
             this.tspText.Click += new System.EventHandler(this.label20_Click);
             // 
@@ -469,6 +472,7 @@ namespace Gamry2Chamber
             this.tpvText.Name = "tpvText";
             this.tpvText.Size = new System.Drawing.Size(35, 33);
             this.tpvText.TabIndex = 4;
+            this.tpvText.Tag = "tpvText";
             this.tpvText.Text = "--";
             this.tpvText.Click += new System.EventHandler(this.tpvText_Click);
             // 
@@ -480,6 +484,7 @@ namespace Gamry2Chamber
             this.rhpvText.Name = "rhpvText";
             this.rhpvText.Size = new System.Drawing.Size(35, 33);
             this.rhpvText.TabIndex = 4;
+            this.rhpvText.Tag = "rhpvText";
             this.rhpvText.Text = "--";
             this.rhpvText.Click += new System.EventHandler(this.rhpvText_Click);
             // 
@@ -693,6 +698,7 @@ namespace Gamry2Chamber
             this.ipField.Name = "ipField";
             this.ipField.Size = new System.Drawing.Size(273, 47);
             this.ipField.TabIndex = 3;
+            this.ipField.Tag = "ipField";
             this.ipField.Text = "10.163.46.185";
             // 
             // subnetField
@@ -702,6 +708,7 @@ namespace Gamry2Chamber
             this.subnetField.Name = "subnetField";
             this.subnetField.Size = new System.Drawing.Size(273, 47);
             this.subnetField.TabIndex = 3;
+            this.subnetField.Tag = "subnetField";
             this.subnetField.Text = "255.255.254.0";
             this.subnetField.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
             // 
@@ -712,6 +719,7 @@ namespace Gamry2Chamber
             this.portChamberField.Name = "portChamberField";
             this.portChamberField.Size = new System.Drawing.Size(273, 47);
             this.portChamberField.TabIndex = 3;
+            this.portChamberField.Tag = "portChamberField";
             this.portChamberField.Text = "5025";
             this.portChamberField.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
             // 

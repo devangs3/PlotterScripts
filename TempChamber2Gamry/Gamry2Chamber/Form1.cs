@@ -31,11 +31,47 @@ namespace Gamry2Chamber
         string dataFolderName = "";
         private MySqlConnection conn;
         string connString = "";
+
         string frameworkPath = "C:\\Program Files (x86)\\Gamry Instruments\\Framework\\framework.exe";
         string scriptsPath = "C:\\ProgramData\\Gamry Instruments\\Framework\\Scripts\\";
         string iniPath = "C:\\ProgramData\\Gamry Instruments\\Framework\\UTDallas.INI";
-        string scanScript = "scangamry.exp";
-        string contScript = "contgamry.exp";
+
+        // define class object for uploading a data column format to multiple tables in mySQL
+        class dataBlock {
+            private string tableName;//  { get { return tableName; } set { tableName = value; } }
+            private string scriptName; // { get { return scriptName; } set { scriptName = value; } }
+            private string[] columnNames;// { get { return columnNames; } set { columnNames = value; } }
+            private string[] inputHandles;// { get { return inputHandles; } set { inputHandles = value; } }
+            private string columnNameSQL { get { return string.Join(",", columnNames); } }
+            // contructors 
+            public dataBlock() { }
+            public dataBlock(string input1, string[] input2, string[] input3, string input4)
+            {
+                tableName = input1;
+                columnNames = input2;
+                inputHandles = input3;
+                scriptName = input4;
+            }
+        }
+
+        dataBlock healthBlock = new dataBlock("health",
+            new string[] {"operator", "timestamp", "TSP", "TPV", "RHSP", "RHPV"} ,
+            new string[] { "userField", "", "tspText", "tpvText", "rhspText", "rhpvText" },
+            "");
+        dataBlock scanBlock = new dataBlock("scan",
+            new string[] { "operator","module","batch","replicate","TCN","run","TSP","RHSP","timestamp",
+                "TPV","RHPV","frequency","Zmod","Zphase","Zreal","Zimag" },
+            new string[] { "userField", "moduleField", "batchField", "replicateField", "TCN", "", "tspText",  "rhspText","",
+                "tpvText", "rhpvText","","","","","" },
+            "scangamry.exp");
+
+        dataBlock contBlock = new dataBlock("continuous",
+            new string[] { "operator","module","batch","replicate","run","TSP","RHSP","timestamp",
+                "TPV","RHPV","frequency","Zmod","Zphase","Zreal","Zimag" },
+            new string[] { "userField", "",
+                
+                "tspText", "tpvText", "rhspText", "rhpvText" },
+            "contgamry.exp");
 
 
         // DLL inserts for controlling Gamry Framework ////////////////
@@ -195,14 +231,14 @@ namespace Gamry2Chamber
         {
             // send command to chamber
             // refer to F4T programming resources for commands 
-            sendSocketComm(":SOURCE:CLOOP1:SVALUE?", ref tspText);
+            sendSocketComm(":SOURCE:CLOOP1:SPOINT?", ref tspText);
         }
 
         private void readRhspBtn_Click(object sender, EventArgs e)
         {
             // send command to chamber
             // refer to F4T programming resources for commands 
-            sendSocketComm(":SOURCE:CLOOP2:SVALUE?", ref rhspText);
+            sendSocketComm(":SOURCE:CLOOP2:SPOINT?", ref rhspText);
         }
 
         private void LoPt_ValueChanged(object sender, EventArgs e)
@@ -250,7 +286,7 @@ namespace Gamry2Chamber
                 connString = "Server=" + linkField.Text +
                     " ;User ID=" + userField.Text + // "@%" +
                     ";Password=" + passField.Text +
-                    ";Database=" + schemaField.Text +
+                    ";Database=" + schemaField.Text + //scanTableName +
                     ";Port=" + portSQLField.Text;
 
                 using (conn = new MySqlConnection(connString))
@@ -264,10 +300,9 @@ namespace Gamry2Chamber
                         using (var cmd = new MySqlCommand("SELECT * " +
                             "FROM " +
                             schemaField.Text + "." +
-                            tableField.Text +
+                            tableField.Text + //scanTableName +
                             " limit 0, 10;", conn))
                         {
-
                             using (MySqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
@@ -317,6 +352,9 @@ namespace Gamry2Chamber
             readRhpvBtn.PerformClick();
             readTspBtn.PerformClick();
             readRhspBtn.PerformClick();
+
+            // upload chamber data to health table 
+            Upload2mySQL();
 
             // check if T reached setpoint 
             double tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
@@ -394,7 +432,7 @@ namespace Gamry2Chamber
             MessageBox.Show("Check chamber is powered on and conditioning switch is ON", "Check chamber switches",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                   
-            // send high setpoint to chamber to start 
+            // send high setpoint to chamber to start first
             // no profile needed on chamber controller ! :) 
             sendSocketComm(":SOURCE: CLOOP#:SPOINT"+Convert.ToString(HiPt.Value));
 
@@ -463,6 +501,7 @@ namespace Gamry2Chamber
             passField.Enabled = v;
             portSQLField.Enabled = v;
             connectSQLBtn.Enabled = v;
+            tableField.Enabled = v;
 
             moduleField.Enabled = v;
             batchField.Enabled = v;
@@ -472,7 +511,7 @@ namespace Gamry2Chamber
             tsField.Enabled = v;
             LoPt.Enabled = v;
             HiPt.Enabled = v;
-            // groupBox1.Enabled = v;
+            groupBox1.Enabled = v;
         }
         private int getEpochTimeStamp()
         {
@@ -564,17 +603,21 @@ namespace Gamry2Chamber
             addColumnFixed<string>(table, "replicate", replicateField.Text);
             addColumnFixed<string>(table, "TCN", tcnField.Text);
             addColumnFixed<string>(table, "timestamp", getEpochTimeStamp().ToString());
-            addColumnFixed<string>(table, "RH", rhpvText.Text);
+            addColumnFixed<string>(table, "RHSP", rhspText.Text);
+            addColumnFixed<string>(table, "RHPV", rhpvText.Text);
+            addColumnFixed<string>(table, "TSP", tspText.Text);
+            addColumnFixed<string>(table, "TPV", tpvText.Text);
+            addColumnFixed<string>(table, "operator", userField.Text);
 
-            double tempPt = Convert.ToDouble(tpvText.Text);
-            int hiThreshold = Convert.ToInt32(HiPt.Value);
-            int loThreshold = Convert.ToInt32(LoPt.Value);
-            if (tempPt - loThreshold < 1)
-                addColumnFixed<string>(table, "T", LoPt.Text);
-            else if (hiThreshold - tempPt < 1)
-                addColumnFixed<string>(table, "T", HiPt.Text);
-            else
-                addColumnFixed<string>(table, "T", "1.11");
+            //double tempPt = Convert.ToDouble(tpvText.Text);
+            //int hiThreshold = Convert.ToInt32(HiPt.Value);
+            //int loThreshold = Convert.ToInt32(LoPt.Value);
+            //if (tempPt - loThreshold < 1)
+            //    addColumnFixed<string>(table, "T", LoPt.Text);
+            //else if (hiThreshold - tempPt < 1)
+            //    addColumnFixed<string>(table, "T", HiPt.Text);
+            //else
+            //    addColumnFixed<string>(table, "T", "1.11");
 
             // upload 
             try
@@ -583,22 +626,25 @@ namespace Gamry2Chamber
                 StringBuilder sCommand = new StringBuilder("INSERT INTO " +
                     tableField.Text +
                     "(module, batch, replicate, TCN, run," +
-                    "timestamp, T, RH, frequency, Zmod, Zphase," +
-                    "Zreal, Zimag) VALUES ");
+                    "timestamp, RHSP, RHPV, TSP, TPV, operator," +
+                    " frequency, Zmod, Zphase, Zreal, Zimag) VALUES ");
                 List<string> Rows = new List<string>();
                 DataRow[] rows = table.Select();
                 for (int i = 0; i < rows.Length; i++)
                 {
                     Rows.Add(string.Format("('{0}','{1}','{2}',{3},{4},{5}," +
-                        "{6},{7},{8},{9},{10},{11},{12})",
+                        "{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
                         MySqlHelper.EscapeString(rows[i].Field<string>("module")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("batch")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("replicate")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("TCN")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("run")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("timestamp")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("T")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("RH")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("RHSP")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("RHPV")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("TSP")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("TPV")),
+                        MySqlHelper.EscapeString(rows[i].Field<string>("operator")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("frequency")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("Zmod")),
                         MySqlHelper.EscapeString(rows[i].Field<string>("Zphase")),
@@ -632,13 +678,13 @@ namespace Gamry2Chamber
         void addColumnFixed<T>(DataTable table, string columnName, T value)
         {
             System.Data.DataColumn newColumn = new System.Data.DataColumn(columnName, typeof(T));
-            newColumn.DefaultValue = value;
+            newColumn.DefaultValue = value; 
             table.Columns.Add(newColumn);
         }
 
         private void TriggerGamryScan()
         {
-            send2cmd(frameworkPath + " " + scriptsPath + scanScript);
+            send2cmd(frameworkPath + " " + scriptsPath); //+ //scanScript);
         }
 
         // run something on a hidden cmd window 
@@ -779,7 +825,8 @@ namespace Gamry2Chamber
 
         private void button2_Click_2(object sender, EventArgs e)
         {
-
+            // find a control
+            // Controls.Find("userField", true)[0].Text = "New text!";
         }
 
         private void rhpvText_Click(object sender, EventArgs e)
@@ -790,6 +837,19 @@ namespace Gamry2Chamber
         private void tpvText_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+            //if (radioButton2.Checked)
+            //    stopBtn.BackColor = Color.Green;
+            //else
+            //    stopBtn.BackColor = Color.OrangeRed;
         }
     }
 }
