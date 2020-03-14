@@ -37,8 +37,8 @@ namespace Gamry2Chamber
             this.button2 = new System.Windows.Forms.Button();
             this.dataPathBtn = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.radioButton2 = new System.Windows.Forms.RadioButton();
-            this.radioButton1 = new System.Windows.Forms.RadioButton();
+            this.radioLevel = new System.Windows.Forms.RadioButton();
+            this.radioLevelEdge = new System.Windows.Forms.RadioButton();
             this.stopBtn = new System.Windows.Forms.Button();
             this.tsField = new System.Windows.Forms.NumericUpDown();
             this.label7 = new System.Windows.Forms.Label();
@@ -168,8 +168,8 @@ namespace Gamry2Chamber
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.radioButton2);
-            this.groupBox1.Controls.Add(this.radioButton1);
+            this.groupBox1.Controls.Add(this.radioLevel);
+            this.groupBox1.Controls.Add(this.radioLevelEdge);
             this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox1.Location = new System.Drawing.Point(580, 216);
             this.groupBox1.Name = "groupBox1";
@@ -179,30 +179,30 @@ namespace Gamry2Chamber
             this.groupBox1.Text = "Mode";
             this.groupBox1.Enter += new System.EventHandler(this.groupBox1_Enter);
             // 
-            // radioButton2
+            // radioLevel
             // 
-            this.radioButton2.AutoSize = true;
-            this.radioButton2.Checked = true;
-            this.radioButton2.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButton2.Location = new System.Drawing.Point(25, 44);
-            this.radioButton2.Name = "radioButton2";
-            this.radioButton2.Size = new System.Drawing.Size(109, 41);
-            this.radioButton2.TabIndex = 16;
-            this.radioButton2.TabStop = true;
-            this.radioButton2.Text = "Level";
-            this.radioButton2.UseVisualStyleBackColor = true;
-            this.radioButton2.CheckedChanged += new System.EventHandler(this.radioButton2_CheckedChanged);
+            this.radioLevel.AutoSize = true;
+            this.radioLevel.Checked = true;
+            this.radioLevel.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioLevel.Location = new System.Drawing.Point(25, 44);
+            this.radioLevel.Name = "radioLevel";
+            this.radioLevel.Size = new System.Drawing.Size(109, 41);
+            this.radioLevel.TabIndex = 16;
+            this.radioLevel.TabStop = true;
+            this.radioLevel.Text = "Level";
+            this.radioLevel.UseVisualStyleBackColor = true;
+            this.radioLevel.CheckedChanged += new System.EventHandler(this.radioButton2_CheckedChanged);
             // 
-            // radioButton1
+            // radioLevelEdge
             // 
-            this.radioButton1.AutoSize = true;
-            this.radioButton1.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButton1.Location = new System.Drawing.Point(25, 91);
-            this.radioButton1.Name = "radioButton1";
-            this.radioButton1.Size = new System.Drawing.Size(220, 41);
-            this.radioButton1.TabIndex = 15;
-            this.radioButton1.Text = "Level + Edge";
-            this.radioButton1.UseVisualStyleBackColor = true;
+            this.radioLevelEdge.AutoSize = true;
+            this.radioLevelEdge.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioLevelEdge.Location = new System.Drawing.Point(25, 91);
+            this.radioLevelEdge.Name = "radioLevelEdge";
+            this.radioLevelEdge.Size = new System.Drawing.Size(220, 41);
+            this.radioLevelEdge.TabIndex = 15;
+            this.radioLevelEdge.Text = "Level + Edge";
+            this.radioLevelEdge.UseVisualStyleBackColor = true;
             // 
             // stopBtn
             // 
@@ -663,7 +663,7 @@ namespace Gamry2Chamber
             this.tabPage1.Location = new System.Drawing.Point(4, 38);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1027, 512);
+            this.tabPage1.Size = new System.Drawing.Size(1115, 609);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Chamber connection";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -752,11 +752,12 @@ namespace Gamry2Chamber
             this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Controls.Add(this.tabPage6);
             this.tabControl1.Controls.Add(this.tabPage7);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tabControl1.Location = new System.Drawing.Point(43, 32);
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1035, 554);
+            this.tabControl1.Size = new System.Drawing.Size(1123, 651);
             this.tabControl1.TabIndex = 14;
             // 
             // tabPage4
@@ -988,8 +989,8 @@ namespace Gamry2Chamber
         private System.Windows.Forms.TabPage tabPage6;
         private System.Windows.Forms.Button dataPathBtn;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.RadioButton radioButton2;
-        private System.Windows.Forms.RadioButton radioButton1;
+        private System.Windows.Forms.RadioButton radioLevel;
+        private System.Windows.Forms.RadioButton radioLevelEdge;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.PictureBox pictureBox1;

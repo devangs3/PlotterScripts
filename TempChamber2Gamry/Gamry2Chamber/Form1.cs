@@ -35,44 +35,48 @@ namespace Gamry2Chamber
         string frameworkPath = "C:\\Program Files (x86)\\Gamry Instruments\\Framework\\framework.exe";
         string scriptsPath = "C:\\ProgramData\\Gamry Instruments\\Framework\\Scripts\\";
         string iniPath = "C:\\ProgramData\\Gamry Instruments\\Framework\\UTDallas.INI";
+        System.Diagnostics.Process process = new System.Diagnostics.Process();
 
         // define class object for uploading a data column format to multiple tables in mySQL
         class dataBlock {
-            private string tableName;//  { get { return tableName; } set { tableName = value; } }
-            private string scriptName; // { get { return scriptName; } set { scriptName = value; } }
-            private string[] columnNames;// { get { return columnNames; } set { columnNames = value; } }
-            private string[] inputHandles;// { get { return inputHandles; } set { inputHandles = value; } }
-            private string columnNameSQL { get { return string.Join(",", columnNames); } }
+            internal string tableSuffix  { get { return tableSuffix; }  set { tableSuffix = value; } }
+            internal string scriptName  { get { return scriptName; }set { scriptName = value; } }
+            internal string[] columnNames { get { return columnNames; } set { columnNames = value; } }
+            internal string[] inputHandles { get { return inputHandles; } set { inputHandles = value; } }
+            internal string printString { get { return printString; } set { printString = value; } }
+            internal string columnNameSQL { get { return string.Join(",", columnNames); } }
             // contructors 
             public dataBlock() { }
-            public dataBlock(string input1, string[] input2, string[] input3, string input4)
+            public dataBlock(string input1, string[] input2, string[] input3, string input4, string input5)
             {
-                tableName = input1;
+                tableSuffix = input1;
                 columnNames = input2;
                 inputHandles = input3;
-                scriptName = input4;
+                printString = input4;
+                scriptName = input5;
             }
         }
 
         dataBlock healthBlock = new dataBlock("health",
             new string[] {"operator", "timestamp", "TSP", "TPV", "RHSP", "RHPV"} ,
             new string[] { "userField", "", "tspText", "tpvText", "rhspText", "rhpvText" },
+             "('{0}',{1},{2},{3},{4},{5})",
             "");
         dataBlock scanBlock = new dataBlock("scan",
             new string[] { "operator","module","batch","replicate","TCN","run","TSP","RHSP","timestamp",
                 "TPV","RHPV","frequency","Zmod","Zphase","Zreal","Zimag" },
             new string[] { "userField", "moduleField", "batchField", "replicateField", "TCN", "", "tspText",  "rhspText","",
                 "tpvText", "rhpvText","","","","","" },
+            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
             "scangamry.exp");
 
         dataBlock contBlock = new dataBlock("continuous",
             new string[] { "operator","module","batch","replicate","run","TSP","RHSP","timestamp",
                 "TPV","RHPV","frequency","Zmod","Zphase","Zreal","Zimag" },
-            new string[] { "userField", "",
-                
-                "tspText", "tpvText", "rhspText", "rhpvText" },
+            new string[] { "userField", "moduleField", "batchField", "replicateField", "", "tspText",  "rhspText","",
+                 "tpvText", "rhpvText","","","","","" },
+            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
             "contgamry.exp");
-
 
         // DLL inserts for controlling Gamry Framework ////////////////
         /// <summary>
@@ -354,37 +358,42 @@ namespace Gamry2Chamber
             readRhspBtn.PerformClick();
 
             // upload chamber data to health table 
-            Upload2mySQL();
+            Upload2mySQL("", healthBlock);
 
             // check if T reached setpoint 
             double tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
             int hiThreshold = Convert.ToInt32(HiPt.Value);
             int loThreshold = Convert.ToInt32(LoPt.Value);
+            // process for half cycle, one setpoint and one ramp 
             if (tempPt - loThreshold < 1 || hiThreshold - tempPt < 1)
             {
-                // trigger measure 
-                TriggerGamryScan();
-
-                // wait for measure to complete, 1 MHZ to 1 Hz, 5 loops
-                // check INI file for flag == DONE
-                string flagValue;
-                do
+                // if SF_EIS running, stop it and do necessary steps
+                if(radioLevelEdge.Checked)
                 {
-                    // wait 
-                    Thread.Sleep(10000);
-                    // try flag read 
-                    flagValue = readINI(iniPath, "FLAGSECTION", "FLAG1");
-                } while (flagValue != "DONE");
+                    // kill process, no need to check flag
+                    process.Kill();
+
+                    // cleanup and upload to SQL
+                    Upload2mySQL("EISMON", contBlock);
+
+                    // double backup; rename files 
+                    RenameLatestFiles("EISMON");                                       
+                }
+
+                // trigger measure 
+                TriggerGamry(scanBlock.scriptName);                 
 
                 // cleanup and upload to SQL
-                Upload2mySQL();
+                Upload2mySQL("EISPOT", scanBlock);
+                // Upload2mySQL("EISMON", contBlock);
 
                 // double backup; rename files 
-                RenameLatestFiles();
+                RenameLatestFiles("EISPOT");
+                // RenameLatestFiles("EISMON");
 
                 //increment TCN 
                 tcnField.Text = Convert.ToString(Convert.ToDouble(tcnField.Text) + 0.5);
-
+                
                 // reset INI flag 
                 writeINI(iniPath, "FLAGSECTION", "FLAG1", "READY");
 
@@ -396,6 +405,13 @@ namespace Gamry2Chamber
                 else 
                 { newTSP = Convert.ToString(LoPt.Value); }
                 sendSocketComm(":SOURCE:CLOOP1:SPOINT"+newTSP);
+
+                // start EIS monitor if level+edge mode
+                if (radioLevelEdge.Checked){
+                    // start continuos EIS mode 
+                    TriggerGamry(contBlock.scriptName);
+                }
+
             }
             // end of process, restart timer 
             timer1.Enabled = true;
@@ -435,6 +451,12 @@ namespace Gamry2Chamber
             // send high setpoint to chamber to start first
             // no profile needed on chamber controller ! :) 
             sendSocketComm(":SOURCE: CLOOP#:SPOINT"+Convert.ToString(HiPt.Value));
+
+            // start continuous EIS if selected
+            if (radioLevelEdge.Checked){
+                TriggerGamry(contBlock.scriptName);
+            }
+
 
             // turn button green
             startBtn.BackColor = Color.Green;
@@ -531,7 +553,7 @@ namespace Gamry2Chamber
             String yy = datevalue.Year.ToString();
             return dy + mn + yy;
         }
-        private void RenameLatestFiles()
+        private void RenameLatestFiles(string file2look)
         {
             string timestampnow = Convert.ToString(getEpochTimeStamp());
             DirectoryInfo d = new DirectoryInfo(dataFolderName);
@@ -541,7 +563,7 @@ namespace Gamry2Chamber
                 // if (f.Name.Contains("EISPOT"))
                 // rename files with name EISPOT_##.DTA
                 // replace text EISPOT                
-                File.Move(f.FullName, f.FullName.Replace("EISPOT", timestampnow + "_" +
+                File.Move(f.FullName, f.FullName.Replace(file2look, timestampnow + "_" +
                     moduleField.Text + "_" +
                     batchField.Text + "_" +
                     replicateField.Text + "_" +
@@ -550,110 +572,205 @@ namespace Gamry2Chamber
             }
         }
 
-        private void Upload2mySQL()
+        private void Upload2mySQL(string file2look, dataBlock settings)
         {
-            // select files named EISPOT_##.DTA only             
-            DirectoryInfo d = new DirectoryInfo(dataFolderName);
-            FileInfo[] infos = d.GetFiles();
+            // select files named EISPOT_##.DTA only  
+            string timeZero="";
             DataTable table = new DataTable();
-            table.Columns.Add("run", typeof(string));
-            table.Columns.Add("frequency", typeof(string));
-            table.Columns.Add("Zmod", typeof(string));
-            table.Columns.Add("Zphase", typeof(string));
-            table.Columns.Add("Zreal", typeof(string));
-            table.Columns.Add("Zimag", typeof(string));
-
-            foreach (FileInfo f in infos)
+            // if data is not for not health table; i.e. actual sample data 
+            if (file2look != "")
             {
-                if (f.Name.Contains("EISPOT"))
+                DirectoryInfo d = new DirectoryInfo(dataFolderName);
+                FileInfo[] infos = d.GetFiles();
+                table.Columns.Add("frequency", typeof(string));
+                table.Columns.Add("Zmod", typeof(string));
+                table.Columns.Add("Zphase", typeof(string));
+                table.Columns.Add("Zreal", typeof(string));
+                table.Columns.Add("Zimag", typeof(string));
+                if (file2look == "EISPOT")
                 {
-                    // read file
-                    string[] lines = File.ReadAllLines(f.FullName);
+                    table.Columns.Add("run", typeof(string));
+                }
+                if (file2look == "EISMON")
+                {
+                    table.Columns.Add("timestamp", typeof(string));
+                }
 
-                    // remove header lines
-                    lines = lines.Skip(57).ToArray();
-
-                    // read into table 
-                    foreach (string line in lines)
+                foreach (FileInfo f in infos)
+                {
+                    if (f.Name.Contains(file2look))
                     {
-                        // split by space
-                        string[] col = line.Split('\t');
+                        // read file
+                        string[] lines = File.ReadAllLines(f.FullName);
 
-                        if (col.Length == 12)
+                        // get date time of script run ///////////////////////
+                        string dateline = lines[3]; // line 4
+                        string timeline = lines[4]; // line 5 
+                                                    // convert to epoch, use this to save timestamp
+                        dateline = dateline.Split('\t')[2]; // 3rd word
+                        timeline = timeline.Split('\t')[2]; // 3rd word
+                        DateTimeOffset dto = new DateTimeOffset(Convert.ToInt32(dateline.Split('/')[2]), // year 
+                            Convert.ToInt32(dateline.Split('/')[0]), // month
+                            Convert.ToInt32(dateline.Split('/')[1]), // date
+                            Convert.ToInt32(timeline.Split(':')[0]), // hr24 
+                            Convert.ToInt32(timeline.Split(':')[1]), // min 
+                            Convert.ToInt32(timeline.Split(':')[2]), // sec
+                            TimeSpan.Zero);
+                        timeZero = dto.ToUnixTimeSeconds().ToString();
+
+                        // remove header lines
+                        lines = lines.Skip(57).ToArray();
+
+                        // read into file 
+                        foreach (string line in lines)
                         {
+                            // split by space
+                            string[] col = line.Split('\t');
+
                             // append to table
                             DataRow row = table.NewRow();
-                            // remove unnecesary columns and clean up  
-                            char[] index = { f.Name[8] };
-                            row.SetField("run", new string(index)); // EISPOT_#N.DTA
-                            row.SetField("frequency", col[3]);
-                            row.SetField("Zmod", col[7]);
-                            row.SetField("Zphase", col[8]);
-                            row.SetField("Zreal", col[4]);
-                            row.SetField("Zimag", col[5]);
+                            if (col.Length > 10) // assuming 11 or 12 columns
+                            {
+                                row.SetField("frequency", col[3]);
+                                row.SetField("Zmod", col[7]);
+                                row.SetField("Zphase", col[8]);
+                                row.SetField("Zreal", col[4]);
+                                row.SetField("Zimag", col[5]);
+
+                                // remove unnecesary columns and clean up 
+                                if (file2look == "EISPOT")
+                                {
+                                    char[] index = { f.Name[8] };
+                                    row.SetField("run", new string(index)); // EISPOT_#N.DTA
+
+                                }
+                                if (file2look == "EISMON")
+                                {
+                                    row.SetField("timestamp", timeZero + col[1]); // column 2 of SF-EIS file                                 
+                                }
+                            }
                             table.Rows.Add(row);
                         }
                     }
                 }
+
+                // add columns intialized with the a fixed value //////////////////
+                for (int i = 0; i < settings.columnNames.Length; i++)
+                {
+                    if (settings.inputHandles[i] != "")
+                        addColumnFixed<string>(table, settings.columnNames[i], settings.inputHandles[i] + ".Text");
+                }
+
+                //if (file2look == "EISPOT")
+                //{
+                //    addColumnFixed<string>(table, "module", moduleField.Text);
+                //    addColumnFixed<string>(table, "batch", batchField.Text);
+                //    addColumnFixed<string>(table, "replicate", replicateField.Text);
+                //    addColumnFixed<string>(table, "TCN", tcnField.Text);
+                //    addColumnFixed<string>(table, "timestamp", timeZero);
+                //    addColumnFixed<string>(table, "RHSP", rhspText.Text);
+                //    addColumnFixed<string>(table, "RHPV", rhpvText.Text);
+                //    addColumnFixed<string>(table, "TSP", tspText.Text);
+                //    addColumnFixed<string>(table, "TPV", tpvText.Text);
+                //    addColumnFixed<string>(table, "operator", userField.Text);
+                //}
+                //if (file2look == "EISMON")
+                //{
+                //    addColumnFixed<string>(table, "module", moduleField.Text);
+                //    addColumnFixed<string>(table, "batch", batchField.Text);
+                //    addColumnFixed<string>(table, "replicate", replicateField.Text);
+                //    // addColumnFixed<string>(table, "TCN", tcnField.Text);
+                //    // addColumnFixed<string>(table, "timestamp", getEpochTimeStamp().ToString());
+                //    addColumnFixed<string>(table, "RHSP", rhspText.Text);
+                //    addColumnFixed<string>(table, "RHPV", rhpvText.Text);
+                //    addColumnFixed<string>(table, "TSP", tspText.Text);
+                //    addColumnFixed<string>(table, "TPV", tpvText.Text);
+                //    addColumnFixed<string>(table, "operator", userField.Text);
+                //}
+
+
+                //double tempPt = Convert.ToDouble(tpvText.Text);
+                //int hiThreshold = Convert.ToInt32(HiPt.Value);
+                //int loThreshold = Convert.ToInt32(LoPt.Value);
+                //if (tempPt - loThreshold < 1)
+                //    addColumnFixed<string>(table, "T", LoPt.Text);
+                //else if (hiThreshold - tempPt < 1)
+                //    addColumnFixed<string>(table, "T", HiPt.Text);
+                //else
+                //    addColumnFixed<string>(table, "T", "1.11");
+            }
+            // chamber health data 
+            else if (file2look == "")
+            {
+                // add columns intialized with the a fixed value from handles //////////////////
+                for (int i = 0; i < settings.columnNames.Length; i++)
+                {
+                    if (settings.inputHandles[i] != "")
+                        addColumnFixed<string>(table, settings.columnNames[i], settings.inputHandles[i] + ".Text");
+                }
+                // define non-handle controlled column
+                addColumnFixed<string>(table, "timestamp", getEpochTimeStamp().ToString());
+
+                // insert only one record, default values will be initialized automatically ! :)
+                // this is for mySQL upload script usability
+                DataRow row = table.NewRow();
+                table.Rows.Add(row);
+            }
+            // dataBlock format did not match, throw exception
+            else 
+            {
+                throw new System.ArgumentException("No matching datablock found for mySQL upload!");
             }
 
-            // add columns with the a fixed value 
-            addColumnFixed<string>(table, "module", moduleField.Text);
-            addColumnFixed<string>(table, "batch", batchField.Text);
-            addColumnFixed<string>(table, "replicate", replicateField.Text);
-            addColumnFixed<string>(table, "TCN", tcnField.Text);
-            addColumnFixed<string>(table, "timestamp", getEpochTimeStamp().ToString());
-            addColumnFixed<string>(table, "RHSP", rhspText.Text);
-            addColumnFixed<string>(table, "RHPV", rhpvText.Text);
-            addColumnFixed<string>(table, "TSP", tspText.Text);
-            addColumnFixed<string>(table, "TPV", tpvText.Text);
-            addColumnFixed<string>(table, "operator", userField.Text);
-
-            //double tempPt = Convert.ToDouble(tpvText.Text);
-            //int hiThreshold = Convert.ToInt32(HiPt.Value);
-            //int loThreshold = Convert.ToInt32(LoPt.Value);
-            //if (tempPt - loThreshold < 1)
-            //    addColumnFixed<string>(table, "T", LoPt.Text);
-            //else if (hiThreshold - tempPt < 1)
-            //    addColumnFixed<string>(table, "T", HiPt.Text);
-            //else
-            //    addColumnFixed<string>(table, "T", "1.11");
-
-            // upload 
+            // upload to server
             try
             {
-                // bulk upload 
+                // bulk upload using string building feature
                 StringBuilder sCommand = new StringBuilder("INSERT INTO " +
-                    tableField.Text +
-                    "(module, batch, replicate, TCN, run," +
-                    "timestamp, RHSP, RHPV, TSP, TPV, operator," +
-                    " frequency, Zmod, Zphase, Zreal, Zimag) VALUES ");
+                    tableField.Text + settings.tableSuffix +
+                    "(" + 
+                    settings.columnNameSQL +
+                    // "module, batch, replicate, TCN, run," +
+                    // "timestamp, RHSP, RHPV, TSP, TPV, operator," +
+                    // " frequency, Zmod, Zphase, Zreal, Zimag" +
+                    ") VALUES ");
                 List<string> Rows = new List<string>();
                 DataRow[] rows = table.Select();
                 for (int i = 0; i < rows.Length; i++)
                 {
-                    Rows.Add(string.Format("('{0}','{1}','{2}',{3},{4},{5}," +
-                        "{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
-                        MySqlHelper.EscapeString(rows[i].Field<string>("module")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("batch")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("replicate")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("TCN")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("run")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("timestamp")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("RHSP")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("RHPV")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("TSP")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("TPV")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("operator")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("frequency")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("Zmod")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("Zphase")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("Zreal")),
-                        MySqlHelper.EscapeString(rows[i].Field<string>("Zimag"))
+                    // create record escape string list 
+                    List<object> record = new List<object>();
+                    foreach( string column in table.Columns) {
+                        record.Add(MySqlHelper.EscapeString(rows[i].Field<string>(column)));                        
+                    }
+                    // add record data to a mySQL string list 
+                    Rows.Add(string.Format(
+                        settings.columnNameSQL,
+                        //"('{0}','{1}','{2}',{3},{4},{5}," +
+                        //"{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
+                        record.ToArray()
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("module")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("batch")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("replicate")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("TCN")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("run")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("timestamp")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("RHSP")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("RHPV")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("TSP")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("TPV")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("operator")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("frequency")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("Zmod")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("Zphase")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("Zreal")),
+                        //MySqlHelper.EscapeString(rows[i].Field<string>("Zimag"))
                     ));
                 }
+                // join list of strings and terminate mySQL command with ';'
                 sCommand.Append(string.Join(",", Rows));
                 sCommand.Append(";");
+                // actual point of transmission 
                 using (conn = new MySqlConnection(connString))
                 {
                     // open database connection 
@@ -682,15 +799,23 @@ namespace Gamry2Chamber
             table.Columns.Add(newColumn);
         }
 
-        private void TriggerGamryScan()
+        private void TriggerGamry(string scanScript)
         {
-            send2cmd(frameworkPath + " " + scriptsPath); //+ //scanScript);
+            send2cmd(frameworkPath + " " + scriptsPath + scanScript);            
+            // check for flag1 == DONE from custom Gamry INI 
+            string flagValue;
+            do
+            {
+                // wait 
+                Thread.Sleep(10000);
+                // try flag read 
+                flagValue = readINI(iniPath, "FLAGSECTION", "FLAG1");
+            } while (flagValue != "DONE");
         }
 
         // run something on a hidden cmd window 
         private void send2cmd(string arguments)
-        {
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
+        {            
             System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             startInfo.FileName = "cmd.exe";
