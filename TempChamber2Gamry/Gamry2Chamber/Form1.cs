@@ -18,6 +18,8 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using IniParser;
 using IniParser.Model;
+using Z.Expressions;
+using System.Reflection;
 // using MySql.Data.MySqlClient;
 // using IniParser;
 // using IniParser.Model;
@@ -39,12 +41,12 @@ namespace Gamry2Chamber
 
         // define class object for uploading a data column format to multiple tables in mySQL
         class dataBlock {
-            internal string tableSuffix  { get { return tableSuffix; }  set { tableSuffix = value; } }
-            internal string scriptName  { get { return scriptName; }set { scriptName = value; } }
-            internal string[] columnNames { get { return columnNames; } set { columnNames = value; } }
-            internal string[] inputHandles { get { return inputHandles; } set { inputHandles = value; } }
-            internal string printString { get { return printString; } set { printString = value; } }
-            internal string columnNameSQL { get { return string.Join(",", columnNames); } }
+            internal string tableSuffix { get; set; }
+            internal string scriptName { get; set; }
+            internal string[] columnNames { get; set; }
+            internal string[] inputHandles { get; set; }
+            internal string printString { get; set; }
+            internal string columnNameSQL { get { return string.Join(",", this.columnNames); } }
             // contructors 
             public dataBlock() { }
             public dataBlock(string input1, string[] input2, string[] input3, string input4, string input5)
@@ -290,7 +292,7 @@ namespace Gamry2Chamber
                 connString = "Server=" + linkField.Text +
                     " ;User ID=" + userField.Text + // "@%" +
                     ";Password=" + passField.Text +
-                    ";Database=" + schemaField.Text + //scanTableName +
+                    ";Database=" + schemaField.Text + //scanBlock.tableSuffix +
                     ";Port=" + portSQLField.Text;
 
                 using (conn = new MySqlConnection(connString))
@@ -304,7 +306,7 @@ namespace Gamry2Chamber
                         using (var cmd = new MySqlCommand("SELECT * " +
                             "FROM " +
                             schemaField.Text + "." +
-                            tableField.Text + //scanTableName +
+                            tableField.Text + scanBlock.tableSuffix  +
                             " limit 0, 10;", conn))
                         {
                             using (MySqlDataReader reader = cmd.ExecuteReader())
@@ -447,10 +449,10 @@ namespace Gamry2Chamber
             // show error 
             MessageBox.Show("Check chamber is powered on and conditioning switch is ON", "Check chamber switches",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                  
+
             // send high setpoint to chamber to start first
             // no profile needed on chamber controller ! :) 
-            sendSocketComm(":SOURCE: CLOOP#:SPOINT"+Convert.ToString(HiPt.Value));
+            sendSocketComm(":SOURCE:CLOOP1:SPOINT " + Convert.ToString(HiPt.Value));            
 
             // start continuous EIS if selected
             if (radioLevelEdge.Checked){
@@ -560,9 +562,9 @@ namespace Gamry2Chamber
             FileInfo[] infos = d.GetFiles();
             foreach (FileInfo f in infos)
             {
-                // if (f.Name.Contains("EISPOT"))
-                // rename files with name EISPOT_##.DTA
-                // replace text EISPOT                
+                if (f.Name.Contains(file2look))
+                // rename files with name specified
+                // replace text file2look with custom                
                 File.Move(f.FullName, f.FullName.Replace(file2look, timestampnow + "_" +
                     moduleField.Text + "_" +
                     batchField.Text + "_" +
@@ -706,7 +708,16 @@ namespace Gamry2Chamber
                 for (int i = 0; i < settings.columnNames.Length; i++)
                 {
                     if (settings.inputHandles[i] != "")
-                        addColumnFixed<string>(table, settings.columnNames[i], settings.inputHandles[i] + ".Text");
+                    {
+                        // Type t = Type.GetType(settings.inputHandles[i]); // get type of object whose handle name is stored 
+                        // PropertyInfo p = t.GetProperty("Text"); // get text property for that object 
+                        //addColumnFixed<string>(table, settings.columnNames[i], p.GetValue(null,null).ToString());
+
+                        // use eval statement , not working 
+                        var nameGetter = Eval.Compile<Func<dataBlock, string>>("x.Text","x");
+                        var name = nameGetter();
+                        addColumnFixed<string>(table, settings.columnNames[i], name.ToString());
+                    }
                 }
                 // define non-handle controlled column
                 addColumnFixed<string>(table, "timestamp", getEpochTimeStamp().ToString());
@@ -740,8 +751,8 @@ namespace Gamry2Chamber
                 {
                     // create record escape string list 
                     List<object> record = new List<object>();
-                    foreach( string column in table.Columns) {
-                        record.Add(MySqlHelper.EscapeString(rows[i].Field<string>(column)));                        
+                    foreach( DataColumn column in table.Columns) {
+                        record.Add(MySqlHelper.EscapeString(rows[i].Field<string>(column.ToString())));                
                     }
                     // add record data to a mySQL string list 
                     Rows.Add(string.Format(
@@ -952,6 +963,10 @@ namespace Gamry2Chamber
         {
             // find a control
             // Controls.Find("userField", true)[0].Text = "New text!";
+
+            //setpoint change to normal 
+            sendSocketComm(":SOURCE:CLOOP1:SPOINT 25");
+
         }
 
         private void rhpvText_Click(object sender, EventArgs e)

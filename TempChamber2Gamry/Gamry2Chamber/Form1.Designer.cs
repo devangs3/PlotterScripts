@@ -140,7 +140,7 @@ namespace Gamry2Chamber
             this.tabPage5.Location = new System.Drawing.Point(4, 38);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(1027, 512);
+            this.tabPage5.Size = new System.Drawing.Size(1115, 609);
             this.tabPage5.TabIndex = 3;
             this.tabPage5.Text = "Profile";
             this.tabPage5.UseVisualStyleBackColor = true;
@@ -229,10 +229,10 @@ namespace Gamry2Chamber
             this.tsField.Size = new System.Drawing.Size(93, 47);
             this.tsField.TabIndex = 10;
             this.tsField.Value = new decimal(new int[] {
-            10,
+            5,
             0,
             0,
-            0});
+            65536});
             this.tsField.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
             // 
             // label7
@@ -308,10 +308,10 @@ namespace Gamry2Chamber
             this.LoPt.Size = new System.Drawing.Size(93, 47);
             this.LoPt.TabIndex = 6;
             this.LoPt.Value = new decimal(new int[] {
-            50,
+            20,
             0,
             0,
-            -2147483648});
+            0});
             this.LoPt.ValueChanged += new System.EventHandler(this.LoPt_ValueChanged);
             // 
             // label14
@@ -342,7 +342,7 @@ namespace Gamry2Chamber
             this.HiPt.Size = new System.Drawing.Size(93, 47);
             this.HiPt.TabIndex = 6;
             this.HiPt.Value = new decimal(new int[] {
-            150,
+            50,
             0,
             0,
             0});
@@ -392,7 +392,7 @@ namespace Gamry2Chamber
             this.tabPage2.Location = new System.Drawing.Point(4, 38);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1027, 512);
+            this.tabPage2.Size = new System.Drawing.Size(1115, 609);
             this.tabPage2.TabIndex = 2;
             this.tabPage2.Text = "Test chamber";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -517,7 +517,7 @@ namespace Gamry2Chamber
             this.tabPage3.Location = new System.Drawing.Point(4, 38);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1027, 512);
+            this.tabPage3.Size = new System.Drawing.Size(1115, 609);
             this.tabPage3.TabIndex = 1;
             this.tabPage3.Text = "Cloud connection";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -772,7 +772,7 @@ namespace Gamry2Chamber
             this.tabPage4.Location = new System.Drawing.Point(4, 38);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(1027, 512);
+            this.tabPage4.Size = new System.Drawing.Size(1115, 609);
             this.tabPage4.TabIndex = 6;
             this.tabPage4.Text = "Chip info";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -851,7 +851,7 @@ namespace Gamry2Chamber
             // 
             this.tabPage6.Location = new System.Drawing.Point(4, 38);
             this.tabPage6.Name = "tabPage6";
-            this.tabPage6.Size = new System.Drawing.Size(1027, 512);
+            this.tabPage6.Size = new System.Drawing.Size(1115, 609);
             this.tabPage6.TabIndex = 5;
             this.tabPage6.Text = "Help";
             this.tabPage6.UseVisualStyleBackColor = true;
@@ -863,7 +863,7 @@ namespace Gamry2Chamber
             this.tabPage7.Location = new System.Drawing.Point(4, 38);
             this.tabPage7.Name = "tabPage7";
             this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage7.Size = new System.Drawing.Size(1027, 512);
+            this.tabPage7.Size = new System.Drawing.Size(1115, 609);
             this.tabPage7.TabIndex = 4;
             this.tabPage7.Text = "About";
             this.tabPage7.UseVisualStyleBackColor = true;

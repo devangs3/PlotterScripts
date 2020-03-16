@@ -50,3 +50,5 @@ C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber
 C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber\obj\Debug\Gamry2Chamber.pdb
 C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber\bin\Debug\INIFileParser.dll
 C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber\bin\Debug\INIFileParser.xml
+C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber\bin\Debug\Z.Expressions.Eval.dll
+C:\Users\dgs150030\Documents\GitHub\TITempCyling\TempChamber2Gamry\Gamry2Chamber\bin\Debug\Z.Expressions.Eval.xml
