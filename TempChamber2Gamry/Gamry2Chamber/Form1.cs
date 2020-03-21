@@ -18,8 +18,9 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using IniParser;
 using IniParser.Model;
-using Z.Expressions;
+// using Z.Expressions;
 using System.Reflection;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 // using MySql.Data.MySqlClient;
 // using IniParser;
 // using IniParser.Model;
@@ -707,16 +708,19 @@ namespace Gamry2Chamber
                 // add columns intialized with the a fixed value from handles //////////////////
                 for (int i = 0; i < settings.columnNames.Length; i++)
                 {
-                    if (settings.inputHandles[i] != "")
-                    {
-                        // Type t = Type.GetType(settings.inputHandles[i]); // get type of object whose handle name is stored 
-                        // PropertyInfo p = t.GetProperty("Text"); // get text property for that object 
-                        //addColumnFixed<string>(table, settings.columnNames[i], p.GetValue(null,null).ToString());
-
-                        // use eval statement , not working 
-                        var nameGetter = Eval.Compile<Func<dataBlock, string>>("x.Text","x");
-                        var name = nameGetter();
-                        addColumnFixed<string>(table, settings.columnNames[i], name.ToString());
+                    if (settings.inputHandles[i] != "") // if handle for textbox or label is defined 
+                    {                       
+                        // look for textbox
+                        TextBox lbl_text = this.Controls.Find(settings.inputHandles[i], true).FirstOrDefault() as TextBox;
+                        if (lbl_text == null) // if the handle wasnt for a textbox but a label
+                        {
+                            Label lbl_text1 = this.Controls.Find(settings.inputHandles[i], true).FirstOrDefault() as Label;
+                            addColumnFixed<string>(table, settings.columnNames[i], lbl_text1.Text);
+                        }
+                        else
+                        {
+                            addColumnFixed<string>(table, settings.columnNames[i], lbl_text.Text);
+                        }
                     }
                 }
                 // define non-handle controlled column
@@ -750,9 +754,10 @@ namespace Gamry2Chamber
                 for (int i = 0; i < rows.Length; i++)
                 {
                     // create record escape string list 
-                    List<object> record = new List<object>();
+                    List<string> record = new List<string>();
                     foreach( DataColumn column in table.Columns) {
-                        record.Add(MySqlHelper.EscapeString(rows[i].Field<string>(column.ToString())));                
+                        // this should insert column value, not column name !!     
+                        record.Add(MySqlHelper.EscapeString(rows[i].Field<string>(column.ToString())));          
                     }
                     // add record data to a mySQL string list 
                     Rows.Add(string.Format(
