@@ -149,7 +149,7 @@ namespace Gamry2Chamber
             // 
             this.button2.Location = new System.Drawing.Point(254, 287);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(40, 14);
+            this.button2.Size = new System.Drawing.Size(40, 28);
             this.button2.TabIndex = 18;
             this.button2.Text = "test";
             this.button2.UseVisualStyleBackColor = true;
@@ -157,13 +157,15 @@ namespace Gamry2Chamber
             // 
             // dataPathBtn
             // 
+            this.dataPathBtn.BackColor = System.Drawing.Color.Green;
+            this.dataPathBtn.Enabled = false;
             this.dataPathBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dataPathBtn.Location = new System.Drawing.Point(174, 216);
             this.dataPathBtn.Name = "dataPathBtn";
             this.dataPathBtn.Size = new System.Drawing.Size(223, 55);
             this.dataPathBtn.TabIndex = 17;
             this.dataPathBtn.Text = "Data path";
-            this.dataPathBtn.UseVisualStyleBackColor = true;
+            this.dataPathBtn.UseVisualStyleBackColor = false;
             this.dataPathBtn.Click += new System.EventHandler(this.pathBtn_Click);
             // 
             // groupBox1
@@ -182,13 +184,11 @@ namespace Gamry2Chamber
             // radioLevel
             // 
             this.radioLevel.AutoSize = true;
-            this.radioLevel.Checked = true;
             this.radioLevel.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.radioLevel.Location = new System.Drawing.Point(25, 44);
             this.radioLevel.Name = "radioLevel";
             this.radioLevel.Size = new System.Drawing.Size(109, 41);
             this.radioLevel.TabIndex = 16;
-            this.radioLevel.TabStop = true;
             this.radioLevel.Text = "Level";
             this.radioLevel.UseVisualStyleBackColor = true;
             this.radioLevel.CheckedChanged += new System.EventHandler(this.radioButton2_CheckedChanged);
@@ -196,11 +196,13 @@ namespace Gamry2Chamber
             // radioLevelEdge
             // 
             this.radioLevelEdge.AutoSize = true;
+            this.radioLevelEdge.Checked = true;
             this.radioLevelEdge.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.radioLevelEdge.Location = new System.Drawing.Point(25, 91);
             this.radioLevelEdge.Name = "radioLevelEdge";
             this.radioLevelEdge.Size = new System.Drawing.Size(220, 41);
             this.radioLevelEdge.TabIndex = 15;
+            this.radioLevelEdge.TabStop = true;
             this.radioLevelEdge.Text = "Level + Edge";
             this.radioLevelEdge.UseVisualStyleBackColor = true;
             // 

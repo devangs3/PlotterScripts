@@ -35,9 +35,9 @@ namespace Gamry2Chamber
         private MySqlConnection conn;
         string connString = "";
 
-        string frameworkPath = "C:\\Program Files (x86)\\Gamry Instruments\\Framework\\framework.exe";
-        string scriptsPath = "C:\\ProgramData\\Gamry Instruments\\Framework\\Scripts\\";
-        string iniPath = "C:\\ProgramData\\Gamry Instruments\\Framework\\UTDallas.INI";
+        string frameworkPath = @"C:\Program Files (x86)\Gamry Instruments\Framework\framework.exe";
+        string scriptsPath = @"C:\ProgramData\Gamry Instruments\Framework\Scripts\";
+        string iniPath = @"C:\ProgramData\Gamry Instruments\Framework\UTDallas.INI";
         System.Diagnostics.Process process = new System.Diagnostics.Process();
 
         // define class object for uploading a data column format to multiple tables in mySQL
@@ -61,23 +61,23 @@ namespace Gamry2Chamber
         }
 
         dataBlock healthBlock = new dataBlock("health",
-            new string[] {"operator", "timestamp", "TSP", "TPV", "RHSP", "RHPV"} ,
-            new string[] { "userField", "", "tspText", "tpvText", "rhspText", "rhpvText" },
+            new string[] {"operator",  "TSP", "TPV", "RHSP", "RHPV","timestamp" } ,
+            new string[] { "userField", "tspText", "tpvText", "rhspText", "rhpvText", ""},
              "('{0}',{1},{2},{3},{4},{5})",
             "");
         dataBlock scanBlock = new dataBlock("scan",
-            new string[] { "operator","module","batch","replicate","TCN","run","TSP","RHSP","timestamp",
-                "TPV","RHPV","frequency","Zmod","Zphase","Zreal","Zimag" },
-            new string[] { "userField", "moduleField", "batchField", "replicateField", "TCN", "", "tspText",  "rhspText","",
-                "tpvText", "rhpvText","","","","","" },
+            new string[] { "operator","module","batch","replicate","TCN","TSP","RHSP","TPV","RHPV",
+                "run","timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
+            new string[] { "userField", "moduleField", "batchField", "replicateField", "TCN", "tspText",  "rhspText",
+                "tpvText", "rhpvText","","","","","","","" },
             "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
             "scangamry.exp");
 
         dataBlock contBlock = new dataBlock("continuous",
-            new string[] { "operator","module","batch","replicate","run","TSP","RHSP","timestamp",
-                "TPV","RHPV","frequency","Zmod","Zphase","Zreal","Zimag" },
-            new string[] { "userField", "moduleField", "batchField", "replicateField", "", "tspText",  "rhspText","",
-                 "tpvText", "rhpvText","","","","","" },
+            new string[] { "operator","module","batch","replicate","run","TSP","RHSP","TPV","RHPV",
+                "timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
+            new string[] { "userField", "moduleField", "batchField", "replicateField",  "tspText",  "rhspText","",
+                 "tpvText", "rhpvText","","","","","","" },
             "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
             "contgamry.exp");
 
@@ -264,6 +264,11 @@ namespace Gamry2Chamber
             // Anchor the button to the bottom right corner of the form
             // tabControl1.Anchor = (AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right);
             // tabControl1.AutoSize = true;
+        }
+
+        private void Form1_Closing(object sender, EventArgs e)
+        {
+            process.Kill();
         }
 
         private void HighPt_ValueChanged(object sender, EventArgs e)
@@ -499,7 +504,7 @@ namespace Gamry2Chamber
             if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog1.SelectedPath))
             {
                 // change INI path 
-                writeINI(iniPath, "GROUPING1", "NAME", folderBrowserDialog1.SelectedPath);
+                writeINI(iniPath, "GROUPING1", "NAME", folderBrowserDialog1.SelectedPath+"\\");
                 // data path is now set and active
                 dataPathBtn.BackColor = Color.Green;
                 dataPathBtn.ForeColor = Color.White;
@@ -756,12 +761,11 @@ namespace Gamry2Chamber
                     // create record escape string list 
                     List<string> record = new List<string>();
                     foreach( DataColumn column in table.Columns) {
-                        // this should insert column value, not column name !!     
-                        record.Add(MySqlHelper.EscapeString(rows[i].Field<string>(column.ToString())));          
+                        record.Add(MySqlHelper.EscapeString(rows[i].Field<string>(column)));                
                     }
                     // add record data to a mySQL string list 
                     Rows.Add(string.Format(
-                        settings.columnNameSQL,
+                        settings.printString,
                         //"('{0}','{1}','{2}',{3},{4},{5}," +
                         //"{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
                         record.ToArray()
@@ -797,7 +801,7 @@ namespace Gamry2Chamber
                         Console.WriteLine("Writing to database using query ...");
                         Console.WriteLine(sCommand.ToString());
                         int r = myCmd.ExecuteNonQuery();
-                        Console.WriteLine("%d rows written! ", r);
+                        Console.WriteLine(r.ToString()+" rows written! ");
                     }
                     conn.Close();
                 }
@@ -815,30 +819,36 @@ namespace Gamry2Chamber
             table.Columns.Add(newColumn);
         }
 
-        private void TriggerGamry(string scanScript)
+        private void TriggerGamry(string script)
         {
-            send2cmd(frameworkPath + " " + scriptsPath + scanScript);            
-            // check for flag1 == DONE from custom Gamry INI 
-            string flagValue;
-            do
+            send2cmd(//frameworkPath + " " + 
+                scriptsPath + script);
+            // check for flag1 == DONE from custom Gamry INI  when doing scan
+            // for continuous, let it run
+            if (script == scanBlock.scriptName)
             {
-                // wait 
-                Thread.Sleep(10000);
-                // try flag read 
-                flagValue = readINI(iniPath, "FLAGSECTION", "FLAG1");
-            } while (flagValue != "DONE");
+                string flagValue;
+                do
+                {
+                    // wait 
+                    Thread.Sleep(10000);
+                    // try flag read 
+                    flagValue = readINI(iniPath, "FLAGSECTION", "FLAG1");
+                } while (flagValue != "DONE");
+            }
         }
 
         // run something on a hidden cmd window 
         private void send2cmd(string arguments)
         {            
             System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            // startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden; // hidden cmd 
             startInfo.FileName = "cmd.exe";
             // startInfo.Arguments = "/C copy /b Image1.jpg + Archive.rar Image2.jpg";
-            startInfo.Arguments = arguments;
+            startInfo.Arguments = "/C \"" + arguments +" \" "; // "/C <what you want to run> is how C# does it"
             process.StartInfo = startInfo;
-            process.Start();
+            if(process.Start())
+                Console.WriteLine("Started process: "+ startInfo.Arguments);
         }
 
         private string readINI(string filepath, string section, string varname)
@@ -970,7 +980,10 @@ namespace Gamry2Chamber
             // Controls.Find("userField", true)[0].Text = "New text!";
 
             //setpoint change to normal 
-            sendSocketComm(":SOURCE:CLOOP1:SPOINT 25");
+            //sendSocketComm(":SOURCE:CLOOP1:SPOINT 25");
+
+            // invoke cmd
+            TriggerGamry(contBlock.scriptName);
 
         }
 
