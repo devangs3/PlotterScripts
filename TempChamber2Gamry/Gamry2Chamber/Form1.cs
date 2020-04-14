@@ -66,10 +66,10 @@ namespace Gamry2Chamber
              "('{0}',{1},{2},{3},{4},{5})",
             "");
         dataBlock scanBlock = new dataBlock("scan",
-            new string[] { "operator","module","batch","replicate","TCN","TSP","RHSP","TPV","RHPV",
-                "run","timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
-            new string[] { "userField", "moduleField", "batchField", "replicateField", "TCN", "tspText", "rhspText",
-                "tpvText", "rhpvText","","","","","","","" },
+            new string[] { "operator","module","batch","replicate","TSP","RHSP","TPV","RHPV",
+                "TCN","run","timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
+            new string[] { "userField", "moduleField", "batchField", "replicateField",  "tspText", "rhspText",
+                "tpvText", "rhpvText","tcnField","","","","","","","" },
             "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15})",
             "scangamry.exp");
 
@@ -585,10 +585,10 @@ namespace Gamry2Chamber
             // select files named EISPOT_##.DTA only  
             string timeZero="";
             DataTable table = new DataTable();
-            // if data is not for not health table; i.e. actual sample data 
+            // if data is not for not health table; i.e. actual sample data ///////////////////
             if (file2look != "")
             {
-                // add columns intialized with the a fixed value //////////////////
+                // add columns intialized with the a handle and a fixed value //////////////////
                 for (int i = 0; i < settings.columnNames.Length; i++)
                 {
                     if (settings.inputHandles[i] != "") // if handle for textbox or label is defined 
@@ -606,7 +606,7 @@ namespace Gamry2Chamber
                                     Console.WriteLine("Error in datablock settings, check inputHandle for given data column");
                                 }
                                 else
-                                {                                    
+                                {
                                     addColumnFixed<string>(table, settings.columnNames[i], lbl_text2.Value.ToString());
                                 }
                             }
@@ -620,24 +620,16 @@ namespace Gamry2Chamber
                             addColumnFixed<string>(table, settings.columnNames[i], lbl_text.Text);
                         }
                     }
-                }
-                if (file2look == "EISPOT")
-                {
-                    table.Columns.Add("run", typeof(string));
-                }
-                if (file2look == "EISMON")
-                {
-                    table.Columns.Add("timestamp", typeof(string));
-                }
+                    else
+                    {                     
+                        // add blank column with type string for no handle given and no initial value ///////////////
+                        table.Columns.Add(settings.columnNames[i], typeof(string));
+                    }                    
+                }                
 
                 // now get data file info and parse 
                 DirectoryInfo d = new DirectoryInfo(dataFolderName);
-                FileInfo[] infos = d.GetFiles();
-                table.Columns.Add("frequency", typeof(string));
-                table.Columns.Add("Zmod", typeof(string));
-                table.Columns.Add("Zphase", typeof(string));
-                table.Columns.Add("Zreal", typeof(string));
-                table.Columns.Add("Zimag", typeof(string));                
+                FileInfo[] infos = d.GetFiles();                          
 
                 foreach (FileInfo f in infos)
                 {
@@ -649,7 +641,7 @@ namespace Gamry2Chamber
                         // get date time of script run ///////////////////////
                         string dateline = lines[3]; // line 4
                         string timeline = lines[4]; // line 5 
-                                                    // convert to epoch, use this to save timestamp
+                        // convert to epoch, use this to save timestamp
                         dateline = dateline.Split('\t')[2]; // 3rd word
                         timeline = timeline.Split('\t')[2]; // 3rd word
                         DateTimeOffset dto = new DateTimeOffset(Convert.ToInt32(dateline.Split('/')[2]), // year 
@@ -661,16 +653,16 @@ namespace Gamry2Chamber
                             TimeSpan.Zero);
                         timeZero = dto.ToUnixTimeSeconds().ToString();
 
-                        // remove header lines
+                        // remove header lines /////////////////////
                         lines = lines.Skip(57).ToArray();
                         // remove last line of EISMON
                         if (file2look == "EISMON")
                             lines = lines.Take(lines.Length-1).ToArray();
 
-                        // read into file 
+                        // read into file ////////////////////////
                         foreach (string line in lines)
                         {
-                            // split by space
+                            // split by tab
                             string[] col = line.Split('\t');
 
                             // append to table
@@ -688,7 +680,7 @@ namespace Gamry2Chamber
                                 {
                                     char[] index = { f.Name[8] };
                                     row.SetField("run", new string(index)); // EISPOT_#N.DTA
-
+                                    row.SetField("timestamp", timeZero); //only timepoint of origin is imp for scan
                                 }
                                 if (file2look == "EISMON")
                                 {
@@ -701,7 +693,7 @@ namespace Gamry2Chamber
                     }
                 }                                
             }
-            // chamber health data 
+            // chamber health data ////////////////////
             else if (file2look == "")
             {
                 // add columns intialized with the a fixed value from handles //////////////////
@@ -975,8 +967,8 @@ namespace Gamry2Chamber
             //setpoint change to normal 
             sendSocketComm(":SOURCE:CLOOP1:SPOINT 25");
 
-            //Upload2mySQL("EISMON", contBlock);
-            Upload2mySQL("EISPOT", scanBlock);
+            Upload2mySQL("EISMON", contBlock);
+            //Upload2mySQL("EISPOT", scanBlock);
 
             // kill process
             //KillGamry();
