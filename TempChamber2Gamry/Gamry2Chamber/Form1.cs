@@ -21,6 +21,7 @@ using IniParser.Model;
 // using Z.Expressions;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using System.Security.AccessControl;
 // using MySql.Data.MySqlClient;
 // using IniParser;
 // using IniParser.Model;
@@ -354,22 +355,23 @@ namespace Gamry2Chamber
         }
 
         // all actions happen here !!!!!!
+        // private async Task timer1_TickAsync(object sender, EventArgs e)
         private void timer1_Tick(object sender, EventArgs e)
         {
             // pause timer 
             timer1.Enabled = false;
 
             // sample T and RH, PV and SP
-            readTpvBtn.PerformClick();
-            readRhpvBtn.PerformClick();
-            readTspBtn.PerformClick();
-            readRhspBtn.PerformClick();
+            readTpvBtn.PerformClick();  
+            readRhpvBtn.PerformClick(); 
+            readTspBtn.PerformClick(); 
+            readRhspBtn.PerformClick(); 
 
             // upload chamber data to health table 
             Upload2mySQL("", healthBlock);
 
             // check if T reached setpoint 
-            double tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
+            double tempPt = Math.Round(Convert.ToDouble(tpvText.Text)); 
             int hiThreshold = Convert.ToInt32(HiPt.Value);
             int loThreshold = Convert.ToInt32(LoPt.Value);
             // process for half cycle, one setpoint and one ramp 
@@ -388,8 +390,8 @@ namespace Gamry2Chamber
                     RenameLatestFiles("EISMON");                                       
                 }
 
-                // trigger measure 
-                TriggerGamry(scanBlock.scriptName);                 
+                // trigger measure task 
+                TriggerGamry(scanBlock.scriptName);                
 
                 // cleanup and upload to SQL
                 Upload2mySQL("EISPOT", scanBlock);
@@ -412,7 +414,7 @@ namespace Gamry2Chamber
                 { newTSP = Convert.ToString(HiPt.Value); }
                 else 
                 { newTSP = Convert.ToString(LoPt.Value); }
-                sendSocketComm(":SOURCE:CLOOP1:SPOINT"+newTSP);
+                sendSocketComm(":SOURCE:CLOOP1:SPOINT "+newTSP);
 
                 // start EIS monitor if level+edge mode
                 if (radioLevelEdge.Checked){
@@ -424,6 +426,7 @@ namespace Gamry2Chamber
             // end of process, restart timer 
             timer1.Enabled = true;
             timer1.Start();
+            // return Task.CompletedTask;
         }
 
 
@@ -464,7 +467,6 @@ namespace Gamry2Chamber
             if (radioLevelEdge.Checked){
                 TriggerGamry(contBlock.scriptName);
             }
-
 
             // turn button green
             startBtn.BackColor = Color.Green;
@@ -635,8 +637,20 @@ namespace Gamry2Chamber
                 {
                     if (f.Name.Contains(file2look))
                     {
-                        // read file
-                        string[] lines = File.ReadAllLines(f.FullName);
+                        string[] lines= { };
+                        // read file, ensure file is not being used/locked by another process !!
+                        try
+                        {
+                            // check if file is locked by other process ; kill the process             
+                            do { 
+                                KillGamry(); 
+                            }while (IsFileLocked(new FileInfo(f.FullName)));
+                            lines = File.ReadAllLines(f.FullName);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
 
                         // get date time of script run ///////////////////////
                         string dateline = lines[3]; // line 4
@@ -797,9 +811,13 @@ namespace Gamry2Chamber
             // for continuous, let it run
             if (script == scanBlock.scriptName)
             {
-                string flagValue;
+                string flagValue="RUNNING";
+                // write flag to RUNNING
+                writeINI(iniPath, "FLAGSECTION", "FLAG1", flagValue);
                 do
-                {
+                {                   
+                    // stating its sleeping 
+                    Console.WriteLine("WAiting for Gamry to finish scan ...") ;
                     // wait 
                     Thread.Sleep(10000);
                     // try flag read 
@@ -807,6 +825,7 @@ namespace Gamry2Chamber
                 } while (flagValue != "DONE");
                 KillGamry();
             }
+            // return Task.CompletedTask;
         }
 
         // kill gamry framework.exe process
@@ -814,8 +833,14 @@ namespace Gamry2Chamber
         {
             try
             {
-                Process[] proc = Process.GetProcessesByName("framework");
-                proc[0].Kill();
+                Process[] proc = { };
+                do
+                {
+                    proc = Process.GetProcessesByName("framework");
+                    proc[0].Kill();
+                } while (proc.Length > 0);
+                // process.Kill();
+                Console.WriteLine("Killing gamry framework app !");
             }
             catch (Exception ex)
             {
@@ -967,7 +992,22 @@ namespace Gamry2Chamber
             //setpoint change to normal 
             sendSocketComm(":SOURCE:CLOOP1:SPOINT 25");
 
-            Upload2mySQL("EISMON", contBlock);
+            // test file read from gamry 
+            // TriggerGamry(contBlock.scriptName);
+            // Thread.Sleep(10000);
+            
+            // check file in use 
+            // string fileName = dataFolderName + "EISMON.DTA";
+
+            // check if file is locked by other process ; kill the process             
+            // do { KillGamry(); }
+            // while (IsFileLocked(new FileInfo(fileName)));
+            
+            // now read file
+            // string[] lines = File.ReadAllLines(dataFolderName+"EISMON.DTA");
+            // Console.WriteLine(lines[60]); // test line write to console 
+
+            // Upload2mySQL("EISMON", contBlock);
             //Upload2mySQL("EISPOT", scanBlock);
 
             // kill process
@@ -977,6 +1017,28 @@ namespace Gamry2Chamber
             //TriggerGamry(contBlock.scriptName);
 
         }
+        private bool IsFileLocked(FileInfo file)
+        {
+            try
+            {
+                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    stream.Close();
+                }
+            }
+            catch (IOException)
+            {
+                //the file is unavailable because it is:
+                //still being written to
+                //or being processed by another thread
+                //or does not exist (has already been processed)
+                return true;
+            }
+
+            //file is not locked
+            return false;
+        }
+
 
         private void rhpvText_Click(object sender, EventArgs e)
         {
