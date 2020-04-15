@@ -360,6 +360,7 @@ namespace Gamry2Chamber
         {
             // pause timer 
             timer1.Enabled = false;
+            int newTSP = 0, oldTSP = 0;
 
             // sample T and RH, PV and SP
             readTpvBtn.PerformClick();  
@@ -408,12 +409,16 @@ namespace Gamry2Chamber
                 writeINI(iniPath, "FLAGSECTION", "FLAG1", "READY");
 
                 // write new setpoint 
-                string newTSP = "";
+                
                 // !!! change setpoint based on previous setpoint 
                 if (tspText.Text == Convert.ToString(LoPt.Value))
-                { newTSP = Convert.ToString(HiPt.Value); }
+                { newTSP = Convert.ToInt32(HiPt.Value);
+                    oldTSP = Convert.ToInt32(LoPt.Value);
+                }
                 else 
-                { newTSP = Convert.ToString(LoPt.Value); }
+                { newTSP = Convert.ToInt32(LoPt.Value);
+                    oldTSP = Convert.ToInt32(HiPt.Value);
+                }
                 sendSocketComm(":SOURCE:CLOOP1:SPOINT "+newTSP);
 
                 // start EIS monitor if level+edge mode
@@ -423,6 +428,14 @@ namespace Gamry2Chamber
                 }
 
             }
+            // wait for TPV to leave old TSP+-/threshold band before it enters 
+            // "if (tempPt - loThreshold < 1 || hiThreshold - tempPt < 1)"
+            do
+            {
+                Thread.Sleep(1000);
+                tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
+            } while (Math.Abs(tempPt - oldTSP) > 2);
+
             // end of process, restart timer 
             timer1.Enabled = true;
             timer1.Start();
