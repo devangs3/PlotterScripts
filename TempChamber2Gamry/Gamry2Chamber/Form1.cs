@@ -362,37 +362,31 @@ namespace Gamry2Chamber
             timer1.Enabled = false;
             int newTSP = 0, oldTSP = 0;
 
-            // sample T and RH, PV and SP
-            readTpvBtn.PerformClick();  
-            readRhpvBtn.PerformClick(); 
-            readTspBtn.PerformClick(); 
-            readRhspBtn.PerformClick(); 
-
-            // upload chamber data to health table 
-            Upload2mySQL("", healthBlock);
+            // sample T and RH, PV and SP and upload to health table on SQL 
+            UpdateParams();            
 
             // check if T reached setpoint 
-            double tempPt = Math.Round(Convert.ToDouble(tpvText.Text)); 
+            double tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
             int hiThreshold = Convert.ToInt32(HiPt.Value);
             int loThreshold = Convert.ToInt32(LoPt.Value);
             // process for half cycle, one setpoint and one ramp 
             if (tempPt - loThreshold < 1 || hiThreshold - tempPt < 1)
             {
                 // if SF_EIS running, stop it and do necessary steps
-                if(radioLevelEdge.Checked)
+                if (radioLevelEdge.Checked)
                 {
                     // kill process, no need to check flag
                     KillGamry();
-                    
+
                     // cleanup and upload to SQL
                     Upload2mySQL("EISMON", contBlock);
 
                     // double backup; rename files 
-                    RenameLatestFiles("EISMON");                                       
+                    RenameLatestFiles("EISMON");
                 }
 
                 // trigger measure task 
-                TriggerGamry(scanBlock.scriptName);                
+                TriggerGamry(scanBlock.scriptName);
 
                 // cleanup and upload to SQL
                 Upload2mySQL("EISPOT", scanBlock);
@@ -404,44 +398,47 @@ namespace Gamry2Chamber
 
                 //increment TCN 
                 tcnField.Text = Convert.ToString(Convert.ToDouble(tcnField.Text) + 0.5);
-                
+
                 // reset INI flag 
                 writeINI(iniPath, "FLAGSECTION", "FLAG1", "READY");
 
-                // write new setpoint 
-                
-                // !!! change setpoint based on previous setpoint 
+                // change setpoint based on previous setpoint 
                 if (tspText.Text == Convert.ToString(LoPt.Value))
-                { newTSP = Convert.ToInt32(HiPt.Value);
+                {
+                    newTSP = Convert.ToInt32(HiPt.Value);
                     oldTSP = Convert.ToInt32(LoPt.Value);
                 }
-                else 
-                { newTSP = Convert.ToInt32(LoPt.Value);
+                else
+                {
+                    newTSP = Convert.ToInt32(LoPt.Value);
                     oldTSP = Convert.ToInt32(HiPt.Value);
                 }
-                sendSocketComm(":SOURCE:CLOOP1:SPOINT "+newTSP);
+                // write new setpoint       
+                sendSocketComm(":SOURCE:CLOOP1:SPOINT " + newTSP.ToString());
+                // wait for TPV to leave old TSP+-/threshold band before it enters 
+                // "if (tempPt - loThreshold < 1 || hiThreshold - tempPt < 1)"
+                do
+                {
+                    Thread.Sleep(60000*Convert.ToInt32(tsField.Value));
+                    UpdateParams(); 
+                    tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
+                } while (Math.Abs(tempPt - oldTSP) < 2);
 
                 // start EIS monitor if level+edge mode
-                if (radioLevelEdge.Checked){
+                if (radioLevelEdge.Checked)
+                {
                     // start continuos EIS mode 
                     TriggerGamry(contBlock.scriptName);
                 }
 
             }
-            // wait for TPV to leave old TSP+-/threshold band before it enters 
-            // "if (tempPt - loThreshold < 1 || hiThreshold - tempPt < 1)"
-            do
-            {
-                Thread.Sleep(1000);
-                tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
-            } while (Math.Abs(tempPt - oldTSP) > 2);
 
             // end of process, restart timer 
             timer1.Enabled = true;
             timer1.Start();
-            // return Task.CompletedTask;
-        }
 
+            // return Task.CompletedTask;
+        }      
 
         private void startBtn_Click(object sender, EventArgs e)
         {
@@ -533,6 +530,15 @@ namespace Gamry2Chamber
         }
 
         // helper functions ////////////////////////////////////////////////////
+        private void UpdateParams()
+        {
+            readTpvBtn.PerformClick();
+            readRhpvBtn.PerformClick();
+            readTspBtn.PerformClick();
+            readRhspBtn.PerformClick();
+            // upload chamber data to health table 
+            Upload2mySQL("", healthBlock);
+        }
         private void enableAll(bool v)
         {
             ipField.Enabled = v;
@@ -589,7 +595,8 @@ namespace Gamry2Chamber
                 File.Move(f.FullName, f.FullName.Replace(file2look, timestampnow + "_" +
                     moduleField.Text + "_" +
                     batchField.Text + "_" +
-                    replicateField.Text + "_" +
+                    replicateField.Text + "_" + 
+                    file2look.Substring(file2look.Length-3) + "_" + // keep half of identifier string (EISXXX -> XXX) to prevent overwriting 
                     Convert.ToString(tcnField.Value)
                     ));
             }
@@ -939,6 +946,7 @@ namespace Gamry2Chamber
             {
                 // Encode the data string into a byte array.    
                 byte[] msg = Encoding.ASCII.GetBytes(v);
+                Console.WriteLine("Sending command to chamber: {0}",v);
 
                 // Send the data through the socket.    
                 int bytesSent = sender1.Send(msg);
