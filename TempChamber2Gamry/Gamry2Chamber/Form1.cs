@@ -389,12 +389,10 @@ namespace Gamry2Chamber
                 TriggerGamry(scanBlock.scriptName);
 
                 // cleanup and upload to SQL
-                Upload2mySQL("EISPOT", scanBlock);
-                // Upload2mySQL("EISMON", contBlock);
+                Upload2mySQL("EISPOT", scanBlock);                
 
                 // double backup; rename files 
-                RenameLatestFiles("EISPOT");
-                // RenameLatestFiles("EISMON");
+                RenameLatestFiles("EISPOT");             
 
                 //increment TCN 
                 tcnField.Text = Convert.ToString(Convert.ToDouble(tcnField.Text) + 0.5);
@@ -419,7 +417,8 @@ namespace Gamry2Chamber
                 // "if (tempPt - loThreshold < 1 || hiThreshold - tempPt < 1)"
                 do
                 {
-                    Thread.Sleep(60000*Convert.ToInt32(tsField.Value));
+                    // Thread.Sleep(60000*Convert.ToInt32(tsField.Value));
+                    Thread.Sleep(1000);
                     UpdateParams(); 
                     tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
                 } while (Math.Abs(tempPt - oldTSP) < 2);
