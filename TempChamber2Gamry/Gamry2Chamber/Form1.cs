@@ -21,6 +21,7 @@ using IniParser.Model;
 // using Z.Expressions;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using System.Security.AccessControl;
 // using MySql.Data.MySqlClient;
 // using IniParser;
 // using IniParser.Model;
@@ -31,7 +32,7 @@ namespace Gamry2Chamber
     {
         private Socket sender1;
         private byte[] bytes = new byte[1024];
-        string dataFolderName = "";
+        string dataFolderName = @"C:\Users\dgs150030\Desktop\031420_testrun\"; // should change with data path button !!
         private MySqlConnection conn;
         string connString = "";
 
@@ -66,19 +67,19 @@ namespace Gamry2Chamber
              "('{0}',{1},{2},{3},{4},{5})",
             "");
         dataBlock scanBlock = new dataBlock("scan",
-            new string[] { "operator","module","batch","replicate","TCN","TSP","RHSP","TPV","RHPV",
-                "run","timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
-            new string[] { "userField", "moduleField", "batchField", "replicateField", "TCN", "tspText",  "rhspText",
-                "tpvText", "rhpvText","","","","","","","" },
-            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
+            new string[] { "operator","module","batch","replicate","TSP","RHSP","TPV","RHPV",
+                "TCN","run","timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
+            new string[] { "userField", "moduleField", "batchField", "replicateField",  "tspText", "rhspText",
+                "tpvText", "rhpvText","tcnField","","","","","","","" },
+            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15})",
             "scangamry.exp");
 
         dataBlock contBlock = new dataBlock("continuous",
-            new string[] { "operator","module","batch","replicate","run","TSP","RHSP","TPV","RHPV",
+            new string[] { "operator","module","batch","replicate","TSP","RHSP","TPV","RHPV",
                 "timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
-            new string[] { "userField", "moduleField", "batchField", "replicateField",  "tspText",  "rhspText","",
+            new string[] { "userField", "moduleField", "batchField", "replicateField",  "tspText",  "rhspText",
                  "tpvText", "rhpvText","","","","","","" },
-            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
+            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13})",
             "contgamry.exp");
 
         // DLL inserts for controlling Gamry Framework ////////////////
@@ -268,7 +269,7 @@ namespace Gamry2Chamber
 
         private void Form1_Closing(object sender, EventArgs e)
         {
-            process.Kill();
+            KillGamry();
         }
 
         private void HighPt_ValueChanged(object sender, EventArgs e)
@@ -354,19 +355,15 @@ namespace Gamry2Chamber
         }
 
         // all actions happen here !!!!!!
+        // private async Task timer1_TickAsync(object sender, EventArgs e)
         private void timer1_Tick(object sender, EventArgs e)
         {
             // pause timer 
             timer1.Enabled = false;
+            int newTSP = 0, oldTSP = 0;
 
-            // sample T and RH, PV and SP
-            readTpvBtn.PerformClick();
-            readRhpvBtn.PerformClick();
-            readTspBtn.PerformClick();
-            readRhspBtn.PerformClick();
-
-            // upload chamber data to health table 
-            Upload2mySQL("", healthBlock);
+            // sample T and RH, PV and SP and upload to health table on SQL 
+            UpdateParams();            
 
             // check if T reached setpoint 
             double tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
@@ -376,56 +373,71 @@ namespace Gamry2Chamber
             if (tempPt - loThreshold < 1 || hiThreshold - tempPt < 1)
             {
                 // if SF_EIS running, stop it and do necessary steps
-                if(radioLevelEdge.Checked)
+                if (radioLevelEdge.Checked)
                 {
                     // kill process, no need to check flag
-                    process.Kill();
+                    KillGamry();
 
                     // cleanup and upload to SQL
                     Upload2mySQL("EISMON", contBlock);
 
                     // double backup; rename files 
-                    RenameLatestFiles("EISMON");                                       
+                    RenameLatestFiles("EISMON");
                 }
 
-                // trigger measure 
-                TriggerGamry(scanBlock.scriptName);                 
+                // trigger measure task 
+                TriggerGamry(scanBlock.scriptName);
 
                 // cleanup and upload to SQL
-                Upload2mySQL("EISPOT", scanBlock);
-                // Upload2mySQL("EISMON", contBlock);
+                Upload2mySQL("EISPOT", scanBlock);                
 
                 // double backup; rename files 
-                RenameLatestFiles("EISPOT");
-                // RenameLatestFiles("EISMON");
+                RenameLatestFiles("EISPOT");             
 
                 //increment TCN 
                 tcnField.Text = Convert.ToString(Convert.ToDouble(tcnField.Text) + 0.5);
-                
+
                 // reset INI flag 
                 writeINI(iniPath, "FLAGSECTION", "FLAG1", "READY");
 
-                // write new setpoint 
-                string newTSP = "";
-                // !!! change setpoint based on previous setpoint 
+                // change setpoint based on previous setpoint 
                 if (tspText.Text == Convert.ToString(LoPt.Value))
-                { newTSP = Convert.ToString(HiPt.Value); }
-                else 
-                { newTSP = Convert.ToString(LoPt.Value); }
-                sendSocketComm(":SOURCE:CLOOP1:SPOINT"+newTSP);
+                {
+                    newTSP = Convert.ToInt32(HiPt.Value);
+                    oldTSP = Convert.ToInt32(LoPt.Value);
+                }
+                else
+                {
+                    newTSP = Convert.ToInt32(LoPt.Value);
+                    oldTSP = Convert.ToInt32(HiPt.Value);
+                }
+                // write new setpoint       
+                sendSocketComm(":SOURCE:CLOOP1:SPOINT " + newTSP.ToString());
+                // wait for TPV to leave old TSP+-/threshold band before it enters 
+                // "if (tempPt - loThreshold < 1 || hiThreshold - tempPt < 1)"
+                do
+                {
+                    // Thread.Sleep(60000*Convert.ToInt32(tsField.Value));
+                    Thread.Sleep(1000);
+                    UpdateParams(); 
+                    tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
+                } while (Math.Abs(tempPt - oldTSP) < 2);
 
                 // start EIS monitor if level+edge mode
-                if (radioLevelEdge.Checked){
+                if (radioLevelEdge.Checked)
+                {
                     // start continuos EIS mode 
                     TriggerGamry(contBlock.scriptName);
                 }
 
             }
+
             // end of process, restart timer 
             timer1.Enabled = true;
             timer1.Start();
-        }
 
+            // return Task.CompletedTask;
+        }      
 
         private void startBtn_Click(object sender, EventArgs e)
         {
@@ -464,7 +476,6 @@ namespace Gamry2Chamber
             if (radioLevelEdge.Checked){
                 TriggerGamry(contBlock.scriptName);
             }
-
 
             // turn button green
             startBtn.BackColor = Color.Green;
@@ -518,6 +529,15 @@ namespace Gamry2Chamber
         }
 
         // helper functions ////////////////////////////////////////////////////
+        private void UpdateParams()
+        {
+            readTpvBtn.PerformClick();
+            readRhpvBtn.PerformClick();
+            readTspBtn.PerformClick();
+            readRhspBtn.PerformClick();
+            // upload chamber data to health table 
+            Upload2mySQL("", healthBlock);
+        }
         private void enableAll(bool v)
         {
             ipField.Enabled = v;
@@ -574,7 +594,8 @@ namespace Gamry2Chamber
                 File.Move(f.FullName, f.FullName.Replace(file2look, timestampnow + "_" +
                     moduleField.Text + "_" +
                     batchField.Text + "_" +
-                    replicateField.Text + "_" +
+                    replicateField.Text + "_" + 
+                    file2look.Substring(file2look.Length-3) + "_" + // keep half of identifier string (EISXXX -> XXX) to prevent overwriting 
                     Convert.ToString(tcnField.Value)
                     ));
             }
@@ -585,36 +606,75 @@ namespace Gamry2Chamber
             // select files named EISPOT_##.DTA only  
             string timeZero="";
             DataTable table = new DataTable();
-            // if data is not for not health table; i.e. actual sample data 
+            // if data is not for not health table; i.e. actual sample data ///////////////////
             if (file2look != "")
             {
+                // add columns intialized with the a handle and a fixed value //////////////////
+                for (int i = 0; i < settings.columnNames.Length; i++)
+                {
+                    if (settings.inputHandles[i] != "") // if handle for textbox or label is defined 
+                    {
+                        // look for textbox
+                        TextBox lbl_text = this.Controls.Find(settings.inputHandles[i], true).FirstOrDefault() as TextBox;
+                        if (lbl_text == null) // if the handle wasnt for a textbox but a label
+                        {
+                            Label lbl_text1 = this.Controls.Find(settings.inputHandles[i], true).FirstOrDefault() as Label;
+                            if (lbl_text1 == null) // if the handle wasnt for a textbox or label, but numericUpDown
+                            {
+                                NumericUpDown lbl_text2 = this.Controls.Find(settings.inputHandles[i], true).FirstOrDefault() as NumericUpDown;
+                                if (lbl_text2 == null) // if the handle wasnt for a textbox or label or numericUpDown
+                                {
+                                    Console.WriteLine("Error in datablock settings, check inputHandle for given data column");
+                                }
+                                else
+                                {
+                                    addColumnFixed<string>(table, settings.columnNames[i], lbl_text2.Value.ToString());
+                                }
+                            }
+                            else
+                            {
+                                addColumnFixed<string>(table, settings.columnNames[i], lbl_text1.Text);
+                            }
+                        }
+                        else // it was a textbox :) 
+                        {
+                            addColumnFixed<string>(table, settings.columnNames[i], lbl_text.Text);
+                        }
+                    }
+                    else
+                    {                     
+                        // add blank column with type string for no handle given and no initial value ///////////////
+                        table.Columns.Add(settings.columnNames[i], typeof(string));
+                    }                    
+                }                
+
+                // now get data file info and parse 
                 DirectoryInfo d = new DirectoryInfo(dataFolderName);
-                FileInfo[] infos = d.GetFiles();
-                table.Columns.Add("frequency", typeof(string));
-                table.Columns.Add("Zmod", typeof(string));
-                table.Columns.Add("Zphase", typeof(string));
-                table.Columns.Add("Zreal", typeof(string));
-                table.Columns.Add("Zimag", typeof(string));
-                if (file2look == "EISPOT")
-                {
-                    table.Columns.Add("run", typeof(string));
-                }
-                if (file2look == "EISMON")
-                {
-                    table.Columns.Add("timestamp", typeof(string));
-                }
+                FileInfo[] infos = d.GetFiles();                          
 
                 foreach (FileInfo f in infos)
                 {
                     if (f.Name.Contains(file2look))
                     {
-                        // read file
-                        string[] lines = File.ReadAllLines(f.FullName);
+                        string[] lines= { };
+                        // read file, ensure file is not being used/locked by another process !!
+                        try
+                        {
+                            // check if file is locked by other process ; kill the process             
+                            do { 
+                                KillGamry(); 
+                            }while (IsFileLocked(new FileInfo(f.FullName)));
+                            lines = File.ReadAllLines(f.FullName);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
 
                         // get date time of script run ///////////////////////
                         string dateline = lines[3]; // line 4
                         string timeline = lines[4]; // line 5 
-                                                    // convert to epoch, use this to save timestamp
+                        // convert to epoch, use this to save timestamp
                         dateline = dateline.Split('\t')[2]; // 3rd word
                         timeline = timeline.Split('\t')[2]; // 3rd word
                         DateTimeOffset dto = new DateTimeOffset(Convert.ToInt32(dateline.Split('/')[2]), // year 
@@ -626,18 +686,21 @@ namespace Gamry2Chamber
                             TimeSpan.Zero);
                         timeZero = dto.ToUnixTimeSeconds().ToString();
 
-                        // remove header lines
+                        // remove header lines /////////////////////
                         lines = lines.Skip(57).ToArray();
+                        // remove last line of EISMON
+                        if (file2look == "EISMON")
+                            lines = lines.Take(lines.Length-1).ToArray();
 
-                        // read into file 
+                        // read into file ////////////////////////
                         foreach (string line in lines)
                         {
-                            // split by space
+                            // split by tab
                             string[] col = line.Split('\t');
 
                             // append to table
                             DataRow row = table.NewRow();
-                            if (col.Length > 10) // assuming 11 or 12 columns
+                            if (col.Length>10) // assuming 11 columns of .DTA file for both
                             {
                                 row.SetField("frequency", col[3]);
                                 row.SetField("Zmod", col[7]);
@@ -650,64 +713,20 @@ namespace Gamry2Chamber
                                 {
                                     char[] index = { f.Name[8] };
                                     row.SetField("run", new string(index)); // EISPOT_#N.DTA
-
+                                    row.SetField("timestamp", timeZero); //only timepoint of origin is imp for scan
                                 }
                                 if (file2look == "EISMON")
                                 {
-                                    row.SetField("timestamp", timeZero + col[1]); // column 2 of SF-EIS file                                 
+                                    Int32 timept = Convert.ToInt32(timeZero) + Convert.ToInt32(col[1]);
+                                    row.SetField("timestamp", timept.ToString()); // column 2 of SF-EIS file                                 
                                 }
                             }
                             table.Rows.Add(row);
                         }
                     }
-                }
-
-                // add columns intialized with the a fixed value //////////////////
-                for (int i = 0; i < settings.columnNames.Length; i++)
-                {
-                    if (settings.inputHandles[i] != "")
-                        addColumnFixed<string>(table, settings.columnNames[i], settings.inputHandles[i] + ".Text");
-                }
-
-                //if (file2look == "EISPOT")
-                //{
-                //    addColumnFixed<string>(table, "module", moduleField.Text);
-                //    addColumnFixed<string>(table, "batch", batchField.Text);
-                //    addColumnFixed<string>(table, "replicate", replicateField.Text);
-                //    addColumnFixed<string>(table, "TCN", tcnField.Text);
-                //    addColumnFixed<string>(table, "timestamp", timeZero);
-                //    addColumnFixed<string>(table, "RHSP", rhspText.Text);
-                //    addColumnFixed<string>(table, "RHPV", rhpvText.Text);
-                //    addColumnFixed<string>(table, "TSP", tspText.Text);
-                //    addColumnFixed<string>(table, "TPV", tpvText.Text);
-                //    addColumnFixed<string>(table, "operator", userField.Text);
-                //}
-                //if (file2look == "EISMON")
-                //{
-                //    addColumnFixed<string>(table, "module", moduleField.Text);
-                //    addColumnFixed<string>(table, "batch", batchField.Text);
-                //    addColumnFixed<string>(table, "replicate", replicateField.Text);
-                //    // addColumnFixed<string>(table, "TCN", tcnField.Text);
-                //    // addColumnFixed<string>(table, "timestamp", getEpochTimeStamp().ToString());
-                //    addColumnFixed<string>(table, "RHSP", rhspText.Text);
-                //    addColumnFixed<string>(table, "RHPV", rhpvText.Text);
-                //    addColumnFixed<string>(table, "TSP", tspText.Text);
-                //    addColumnFixed<string>(table, "TPV", tpvText.Text);
-                //    addColumnFixed<string>(table, "operator", userField.Text);
-                //}
-
-
-                //double tempPt = Convert.ToDouble(tpvText.Text);
-                //int hiThreshold = Convert.ToInt32(HiPt.Value);
-                //int loThreshold = Convert.ToInt32(LoPt.Value);
-                //if (tempPt - loThreshold < 1)
-                //    addColumnFixed<string>(table, "T", LoPt.Text);
-                //else if (hiThreshold - tempPt < 1)
-                //    addColumnFixed<string>(table, "T", HiPt.Text);
-                //else
-                //    addColumnFixed<string>(table, "T", "1.11");
+                }                                
             }
-            // chamber health data 
+            // chamber health data ////////////////////
             else if (file2look == "")
             {
                 // add columns intialized with the a fixed value from handles //////////////////
@@ -749,43 +768,27 @@ namespace Gamry2Chamber
                 StringBuilder sCommand = new StringBuilder("INSERT INTO " +
                     tableField.Text + settings.tableSuffix +
                     "(" + 
-                    settings.columnNameSQL +
-                    // "module, batch, replicate, TCN, run," +
-                    // "timestamp, RHSP, RHPV, TSP, TPV, operator," +
-                    // " frequency, Zmod, Zphase, Zreal, Zimag" +
+                    settings.columnNameSQL +                   
                     ") VALUES ");
                 List<string> Rows = new List<string>();
-                DataRow[] rows = table.Select();
+                DataRow[] rows = table.Select();                
                 for (int i = 0; i < rows.Length; i++)
                 {
+                    Console.Write("Entering loop: ");
+                    Console.WriteLine(Convert.ToString(i));
                     // create record escape string list 
                     List<string> record = new List<string>();
+                    // append each column value to a given record 
                     foreach( DataColumn column in table.Columns) {
                         record.Add(MySqlHelper.EscapeString(rows[i].Field<string>(column)));                
                     }
+                    // check if appended correctly 
+                    Console.Write("Data: ");
+                    string record1 = string.Format(settings.printString, record.ToArray());
+                    Console.Write(record1);
+
                     // add record data to a mySQL string list 
-                    Rows.Add(string.Format(
-                        settings.printString,
-                        //"('{0}','{1}','{2}',{3},{4},{5}," +
-                        //"{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
-                        record.ToArray()
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("module")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("batch")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("replicate")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("TCN")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("run")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("timestamp")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("RHSP")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("RHPV")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("TSP")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("TPV")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("operator")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("frequency")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("Zmod")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("Zphase")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("Zreal")),
-                        //MySqlHelper.EscapeString(rows[i].Field<string>("Zimag"))
-                    ));
+                    Rows.Add(record1);
                 }
                 // join list of strings and terminate mySQL command with ';'
                 sCommand.Append(string.Join(",", Rows));
@@ -794,12 +797,12 @@ namespace Gamry2Chamber
                 using (conn = new MySqlConnection(connString))
                 {
                     // open database connection 
+                    Console.WriteLine("Writing to database using query ...");
+                    Console.WriteLine(sCommand.ToString());
                     conn.Open();
                     using (MySqlCommand myCmd = new MySqlCommand(sCommand.ToString(), conn))
                     {
-                        myCmd.CommandType = CommandType.Text;
-                        Console.WriteLine("Writing to database using query ...");
-                        Console.WriteLine(sCommand.ToString());
+                        myCmd.CommandType = CommandType.Text;                        
                         int r = myCmd.ExecuteNonQuery();
                         Console.WriteLine(r.ToString()+" rows written! ");
                     }
@@ -827,14 +830,40 @@ namespace Gamry2Chamber
             // for continuous, let it run
             if (script == scanBlock.scriptName)
             {
-                string flagValue;
+                string flagValue="RUNNING";
+                // write flag to RUNNING
+                writeINI(iniPath, "FLAGSECTION", "FLAG1", flagValue);
                 do
-                {
+                {                   
+                    // stating its sleeping 
+                    Console.WriteLine("WAiting for Gamry to finish scan ...") ;
                     // wait 
                     Thread.Sleep(10000);
                     // try flag read 
                     flagValue = readINI(iniPath, "FLAGSECTION", "FLAG1");
                 } while (flagValue != "DONE");
+                KillGamry();
+            }
+            // return Task.CompletedTask;
+        }
+
+        // kill gamry framework.exe process
+        private void KillGamry()
+        {
+            try
+            {
+                Process[] proc = { };
+                do
+                {
+                    proc = Process.GetProcessesByName("framework");
+                    proc[0].Kill();
+                } while (proc.Length > 0);
+                // process.Kill();
+                Console.WriteLine("Killing gamry framework app !");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());                
             }
         }
 
@@ -842,7 +871,7 @@ namespace Gamry2Chamber
         private void send2cmd(string arguments)
         {            
             System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            // startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden; // hidden cmd 
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden; // hidden cmd 
             startInfo.FileName = "cmd.exe";
             // startInfo.Arguments = "/C copy /b Image1.jpg + Archive.rar Image2.jpg";
             startInfo.Arguments = "/C \"" + arguments +" \" "; // "/C <what you want to run> is how C# does it"
@@ -916,6 +945,7 @@ namespace Gamry2Chamber
             {
                 // Encode the data string into a byte array.    
                 byte[] msg = Encoding.ASCII.GetBytes(v);
+                Console.WriteLine("Sending command to chamber: {0}",v);
 
                 // Send the data through the socket.    
                 int bytesSent = sender1.Send(msg);
@@ -980,12 +1010,55 @@ namespace Gamry2Chamber
             // Controls.Find("userField", true)[0].Text = "New text!";
 
             //setpoint change to normal 
-            //sendSocketComm(":SOURCE:CLOOP1:SPOINT 25");
+            sendSocketComm(":SOURCE:CLOOP1:SPOINT 25");
+
+            // test file read from gamry 
+            // TriggerGamry(contBlock.scriptName);
+            // Thread.Sleep(10000);
+            
+            // check file in use 
+            // string fileName = dataFolderName + "EISMON.DTA";
+
+            // check if file is locked by other process ; kill the process             
+            // do { KillGamry(); }
+            // while (IsFileLocked(new FileInfo(fileName)));
+            
+            // now read file
+            // string[] lines = File.ReadAllLines(dataFolderName+"EISMON.DTA");
+            // Console.WriteLine(lines[60]); // test line write to console 
+
+            // Upload2mySQL("EISMON", contBlock);
+            //Upload2mySQL("EISPOT", scanBlock);
+
+            // kill process
+            //KillGamry();
 
             // invoke cmd
-            TriggerGamry(contBlock.scriptName);
+            //TriggerGamry(contBlock.scriptName);
 
         }
+        private bool IsFileLocked(FileInfo file)
+        {
+            try
+            {
+                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    stream.Close();
+                }
+            }
+            catch (IOException)
+            {
+                //the file is unavailable because it is:
+                //still being written to
+                //or being processed by another thread
+                //or does not exist (has already been processed)
+                return true;
+            }
+
+            //file is not locked
+            return false;
+        }
+
 
         private void rhpvText_Click(object sender, EventArgs e)
         {
