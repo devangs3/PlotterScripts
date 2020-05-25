@@ -916,34 +916,12 @@ end
 
 % sub functions for the operators parallel and series
 
-function z=s(varargin) % more zs in series
-temp_size_varargin=size(varargin{1},1);
-temp_n=ones(temp_size_varargin,nargin);
-temp_sum=ones(temp_size_varargin,1);
-
-for iii=1:nargin
-    temp_n(:,iii)=varargin{iii};
+function z=s(z1,z2) % 2 impedances in series
+z=z1+z2;
 end
 
-for iii=1:temp_size_varargin
-    temp_sum(iii)=sum(temp_n(iii,:));
-end
-z=temp_sum;
-end
-
-function z=p(varargin) % more zp in parallel
-temp_size_varargin=size(varargin{1},1);
-temp_n=ones(temp_size_varargin,nargin);
-temp_sum=ones(temp_size_varargin,1);
-
-for iii=1:nargin
-    temp_n(:,iii)=varargin{iii};
-end
-
-for iii=1:temp_size_varargin
-    temp_sum(iii)=sum(1./temp_n(iii,:));
-end
-z=1./(temp_sum);
+function z=p(z1,z2) % 2 impedances in parallel
+z=1./(1./z1+1./z2);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
