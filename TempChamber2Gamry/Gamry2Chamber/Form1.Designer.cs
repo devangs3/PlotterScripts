@@ -31,7 +31,6 @@ namespace Gamry2Chamber
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.button2 = new System.Windows.Forms.Button();
@@ -872,10 +871,9 @@ namespace Gamry2Chamber
             // 
             // pictureBox2
             // 
-            this.pictureBox2.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox2.Image")));
             this.pictureBox2.ImageLocation = "C:\\Users\\dgs150030\\Documents\\GitHub\\PlotterScripts\\TempChamber2Gamry\\Gamry2Chambe" +
     "r\\TI.jpg";
-            this.pictureBox2.InitialImage = ((System.Drawing.Image)(resources.GetObject("pictureBox2.InitialImage")));
+            this.pictureBox2.InitialImage = global::Gamry2Chamber.Properties.Resources.TI;
             this.pictureBox2.Location = new System.Drawing.Point(438, 122);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(524, 331);
@@ -885,7 +883,6 @@ namespace Gamry2Chamber
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
             this.pictureBox1.ImageLocation = "C:\\Users\\dgs150030\\Documents\\GitHub\\PlotterScripts\\TempChamber2Gamry\\Gamry2Chambe" +
     "r\\UTD.jpg";
             this.pictureBox1.Location = new System.Drawing.Point(60, 147);
