@@ -1082,5 +1082,10 @@ namespace Gamry2Chamber
             //else
             //    stopBtn.BackColor = Color.OrangeRed;
         }
+
+        private void tabPage5_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
