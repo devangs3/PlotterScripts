@@ -1012,17 +1012,20 @@ namespace Gamry2Chamber
             //setpoint change to normal 
             sendSocketComm(":SOURCE:CLOOP1:SPOINT 25");
 
+            // help   
+            // Help.ShowHelp(this, "C:\\Users\\dgs150030\\Desktop\\e.pdf", HelpNavigator.TopicId, "30");
+
             // test file read from gamry 
             // TriggerGamry(contBlock.scriptName);
             // Thread.Sleep(10000);
-            
+
             // check file in use 
             // string fileName = dataFolderName + "EISMON.DTA";
 
             // check if file is locked by other process ; kill the process             
             // do { KillGamry(); }
             // while (IsFileLocked(new FileInfo(fileName)));
-            
+
             // now read file
             // string[] lines = File.ReadAllLines(dataFolderName+"EISMON.DTA");
             // Console.WriteLine(lines[60]); // test line write to console 
@@ -1084,6 +1087,11 @@ namespace Gamry2Chamber
         }
 
         private void tabPage5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tabPage1_Click(object sender, EventArgs e)
         {
 
         }
