@@ -852,12 +852,13 @@ namespace Gamry2Chamber
         {
             try
             {
-                Process[] proc = { };
-                do
-                {
-                    proc = Process.GetProcessesByName("framework");
-                    proc[0].Kill();
-                } while (proc.Length > 0);
+                send2cmd("taskkill /f /im framework.exe");
+                //Process[] proc = { };
+                //do
+                //{
+                //    proc = Process.GetProcessesByName("framework");
+                //    proc[0].Kill();
+                //} while (proc.Length > 0);
                 // process.Kill();
                 Console.WriteLine("Killing gamry framework app !");
             }
