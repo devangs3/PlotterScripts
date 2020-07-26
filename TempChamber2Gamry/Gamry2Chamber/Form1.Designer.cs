@@ -86,6 +86,8 @@ namespace Gamry2Chamber
             this.label3 = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.pinsField = new System.Windows.Forms.TextBox();
+            this.label20 = new System.Windows.Forms.Label();
             this.replicateField = new System.Windows.Forms.TextBox();
             this.batchField = new System.Windows.Forms.TextBox();
             this.moduleField = new System.Windows.Forms.TextBox();
@@ -766,6 +768,8 @@ namespace Gamry2Chamber
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.pinsField);
+            this.tabPage4.Controls.Add(this.label20);
             this.tabPage4.Controls.Add(this.replicateField);
             this.tabPage4.Controls.Add(this.batchField);
             this.tabPage4.Controls.Add(this.moduleField);
@@ -780,6 +784,28 @@ namespace Gamry2Chamber
             this.tabPage4.TabIndex = 6;
             this.tabPage4.Text = "Chip info";
             this.tabPage4.UseVisualStyleBackColor = true;
+            this.tabPage4.Click += new System.EventHandler(this.tabPage4_Click);
+            // 
+            // pinsField
+            // 
+            this.pinsField.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.5F);
+            this.pinsField.Location = new System.Drawing.Point(431, 284);
+            this.pinsField.Name = "pinsField";
+            this.pinsField.Size = new System.Drawing.Size(329, 47);
+            this.pinsField.TabIndex = 11;
+            this.pinsField.Text = "9-12";
+            this.pinsField.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label20.Location = new System.Drawing.Point(190, 284);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(85, 39);
+            this.label20.TabIndex = 10;
+            this.label20.Text = "Pins";
+            this.label20.Click += new System.EventHandler(this.label20_Click_1);
             // 
             // replicateField
             // 
@@ -1017,6 +1043,8 @@ namespace Gamry2Chamber
         private System.Windows.Forms.Button readRhspBtn;
         private System.Windows.Forms.Button readTspBtn;
         private System.Windows.Forms.Label rhspText;
+        private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.TextBox pinsField;
     }
 }
 

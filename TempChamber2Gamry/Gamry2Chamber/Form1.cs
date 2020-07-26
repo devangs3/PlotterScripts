@@ -69,17 +69,17 @@ namespace Gamry2Chamber
         dataBlock scanBlock = new dataBlock("scan",
             new string[] { "operator","module","batch","replicate","TSP","RHSP","TPV","RHPV",
                 "TCN","run","timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
-            new string[] { "userField", "moduleField", "batchField", "replicateField",  "tspText", "rhspText",
+            new string[] { "userField", "moduleField", "batchField", "replicateField", "pinsField", "tspText", "rhspText",
                 "tpvText", "rhpvText","tcnField","","","","","","","" },
-            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15})",
+            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
             "scangamry.exp");
 
         dataBlock contBlock = new dataBlock("continuous",
             new string[] { "operator","module","batch","replicate","TSP","RHSP","TPV","RHPV",
                 "timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
-            new string[] { "userField", "moduleField", "batchField", "replicateField",  "tspText",  "rhspText",
+            new string[] { "userField", "moduleField", "batchField", "replicateField", "pinsField",  "tspText",  "rhspText",
                  "tpvText", "rhpvText","","","","","","" },
-            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13})",
+            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14})",
             "contgamry.exp");
 
         // DLL inserts for controlling Gamry Framework ////////////////
@@ -418,9 +418,11 @@ namespace Gamry2Chamber
                 do
                 {
                     // Thread.Sleep(60000*Convert.ToInt32(tsField.Value));
-                    Thread.Sleep(1000);
+                    // Thread.Sleep(1000);
                     UpdateParams(); 
                     tempPt = Math.Round(Convert.ToDouble(tpvText.Text));
+                    // continue regular processses
+                    Application.DoEvents();
                 } while (Math.Abs(tempPt - oldTSP) < 2);
 
                 // start EIS monitor if level+edge mode
@@ -836,11 +838,13 @@ namespace Gamry2Chamber
                 do
                 {                   
                     // stating its sleeping 
-                    Console.WriteLine("WAiting for Gamry to finish scan ...") ;
+                    Console.WriteLine("Waiting for Gamry to finish scan ...") ;
                     // wait 
-                    Thread.Sleep(10000);
+                    Thread.Sleep(5000);
                     // try flag read 
                     flagValue = readINI(iniPath, "FLAGSECTION", "FLAG1");
+                    // continue regular processes
+                    Application.DoEvents();
                 } while (flagValue != "DONE");
                 KillGamry();
             }
@@ -1006,41 +1010,11 @@ namespace Gamry2Chamber
 
 
         private void button2_Click_2(object sender, EventArgs e)
-        {
-            // find a control
-            // Controls.Find("userField", true)[0].Text = "New text!";
-
+        {          
             //setpoint change to normal 
-            sendSocketComm(":SOURCE:CLOOP1:SPOINT 25");
-
-            // help   
-            // Help.ShowHelp(this, "C:\\Users\\dgs150030\\Desktop\\e.pdf", HelpNavigator.TopicId, "30");
-
-            // test file read from gamry 
-            // TriggerGamry(contBlock.scriptName);
-            // Thread.Sleep(10000);
-
-            // check file in use 
-            // string fileName = dataFolderName + "EISMON.DTA";
-
-            // check if file is locked by other process ; kill the process             
-            // do { KillGamry(); }
-            // while (IsFileLocked(new FileInfo(fileName)));
-
-            // now read file
-            // string[] lines = File.ReadAllLines(dataFolderName+"EISMON.DTA");
-            // Console.WriteLine(lines[60]); // test line write to console 
-
-            // Upload2mySQL("EISMON", contBlock);
-            //Upload2mySQL("EISPOT", scanBlock);
-
-            // kill process
-            //KillGamry();
-
-            // invoke cmd
-            //TriggerGamry(contBlock.scriptName);
-
+            sendSocketComm(":SOURCE:CLOOP1:SPOINT 25");       
         }
+
         private bool IsFileLocked(FileInfo file)
         {
             try
@@ -1093,6 +1067,21 @@ namespace Gamry2Chamber
         }
 
         private void tabPage1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label20_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tabPage4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
         {
 
         }
