@@ -842,7 +842,7 @@ namespace Gamry2Chamber
                     // stating its sleeping 
                     Console.WriteLine("Waiting for Gamry to finish scan ...") ;
                     // wait 
-                    Thread.Sleep(1000);
+                    //Thread.Sleep(1000);
                     // try flag read 
                     flagValue = readINI(iniPath, "FLAGSECTION", "FLAG1");
                     // continue regular processes

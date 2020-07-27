@@ -793,7 +793,7 @@ namespace Gamry2Chamber
             this.pinsField.Name = "pinsField";
             this.pinsField.Size = new System.Drawing.Size(329, 47);
             this.pinsField.TabIndex = 11;
-            this.pinsField.Text = "9-12";
+            this.pinsField.Text = "9_12";
             this.pinsField.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // label20
