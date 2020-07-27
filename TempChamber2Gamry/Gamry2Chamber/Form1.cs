@@ -192,12 +192,7 @@ namespace Gamry2Chamber
 
                     // clear byte buffer after use  
                     Array.Clear(bytes, 0, bytes.Length);
-
-                    // sample T and RH PV and SP 
-                    readTpvBtn.PerformClick();
-                    readRhpvBtn.PerformClick();
-                    readTspBtn.PerformClick();
-                    readRhspBtn.PerformClick();
+                    
                 }
                 catch (ArgumentNullException ane)
                 {
@@ -431,7 +426,6 @@ namespace Gamry2Chamber
                     // start continuos EIS mode 
                     TriggerGamry(contBlock.scriptName);
                 }
-
             }
 
             // end of process, restart timer 
@@ -502,6 +496,7 @@ namespace Gamry2Chamber
         private void button2_Click(object sender, EventArgs e)
         {
             tabControl1.SelectedIndex += 1;
+            UpdateParams();
         }
 
         private void toolTipDataPath_Popup(object sender, PopupEventArgs e)
@@ -532,7 +527,7 @@ namespace Gamry2Chamber
 
         // helper functions ////////////////////////////////////////////////////
         private void UpdateParams()
-        {
+        {           
             readTpvBtn.PerformClick();
             readRhpvBtn.PerformClick();
             readTspBtn.PerformClick();
@@ -1092,6 +1087,28 @@ namespace Gamry2Chamber
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void readTpvBtn_Click(object sender, EventArgs e)
+        {
+            sendSocketComm(":SOURCE:CLOOP1:PVALUE?", ref tpvText);
+        }
+        private void readTspBtn_Click_1(object sender, EventArgs e)
+        {
+            sendSocketComm(":SOURCE:CLOOP1:SPOINT?", ref tspText);
+        }
+        private void readRhspBtn_Click_1(object sender, EventArgs e)
+        {       
+            sendSocketComm(":SOURCE:CLOOP2:SPOINT?", ref rhspText);
+        }   
+        
+        private void readRhpvBtn_Click(object sender, EventArgs e)
+        {
+            sendSocketComm(":SOURCE:CLOOP2:PVALUE?", ref rhpvText);
+        }
+        private void tpvText_Click_1(object sender, EventArgs e)
         {
 
         }
