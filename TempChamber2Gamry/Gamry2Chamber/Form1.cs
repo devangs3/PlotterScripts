@@ -654,7 +654,7 @@ namespace Gamry2Chamber
 
                 // now get data file info and parse 
                 DirectoryInfo d = new DirectoryInfo(dataFolderName);
-                FileInfo[] infos = d.GetFiles();                          
+                FileInfo[] infos = d.GetFiles();               
 
                 foreach (FileInfo f in infos)
                 {
@@ -775,7 +775,11 @@ namespace Gamry2Chamber
                     settings.columnNameSQL +                   
                     ") VALUES ");
                 List<string> Rows = new List<string>();
-                DataRow[] rows = table.Select();                
+                DataRow[] rows = table.Select();
+                // get out without any errors is no records found
+                if (rows.Length <= 0)
+                    return;
+                // if records found, continue
                 for (int i = 0; i < rows.Length; i++)
                 {
                     Console.Write("Entering loop: ");
@@ -892,6 +896,7 @@ namespace Gamry2Chamber
             var parser = new FileIniDataParser();
             // wait till file is unlocked
             Console.WriteLine("Checking for INI file to be unlocked ...");
+            do{ Thread.Sleep(1000); }
             while (IsFileLocked(new FileInfo(filepath))) ;
             IniData data = parser.ReadFile(filepath);
             return data[section][varname];
