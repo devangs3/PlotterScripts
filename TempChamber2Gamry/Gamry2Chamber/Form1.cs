@@ -396,7 +396,7 @@ namespace Gamry2Chamber
                 writeINI(iniPath, "FLAGSECTION", "FLAG1", "READY");
 
                 // change setpoint based on previous setpoint 
-                if (tspText.Text == Convert.ToString(LoPt.Value))
+                if (Convert.ToInt32(tspText.Text) == LoPt.Value)
                 {
                     newTSP = Convert.ToInt32(HiPt.Value);
                     oldTSP = Convert.ToInt32(LoPt.Value);
