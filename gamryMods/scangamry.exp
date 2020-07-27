@@ -1,0 +1,96 @@
+; Gamry Sequence Wizard Generated Script
+
+; Standard Includes
+include "sequencer.exp"
+
+; Sequence Required Includes
+include "sequencerGROUPDATAFILESINI.exp"
+include "sequencerEISPOT.exp"
+include "sequencerSETINIFLAG.exp"
+
+function Main(argv)
+
+	; Initialize the sequencer
+	Sequencer = SEQUENCER.New(argv)
+
+	; Create experiment object vector
+	expt = VectorNew(3)
+
+	; Create Group Data Files using INI object
+	expt[0] = GROUPDATAFILESINI.New (Arguments0())
+
+	; Start of Loop 1 object definition
+	args = VectorNew(2)
+
+	; Create the argument list for Loop (Cycle)
+	args[0] = IQUANT.New ("LOOPCOUNT", 5, "Loop Count (#)")
+	
+	; Create Potentiostatic EIS object
+	args[1] = EISPOT.New (Arguments1())
+
+	; Create Loop 1 object
+	expt[1] = LOOPBYCYCLE.New (args)
+
+	; Create Set INI Flag object
+	expt[2] = SETINIFLAG.New (Arguments2())
+
+	; Check output filenames and run-time parameters
+	Sequencer.ParameterCheck (expt)
+
+	; Display the sequence steps in the Stdout window
+	Sequencer.DisplaySequence (expt)
+
+	; Run The Sequence
+	Sequencer.Run (expt)
+
+	; Clean Up and Close
+	Sequencer.Close ()
+
+function Arguments0()
+	; Number of Arguments for Group Data Files using INI
+	args = VectorNew(2)
+
+	; Create the argument list for Group Data Files using INI
+	args[0] = LABEL.New ("INIFILE", 128, "UTDALLAS.INI", "INI File Name")
+	args[1] = LABEL.New ("INISECTION", 128, "GROUPING1", "INI Section Name")
+	
+	args
+	return
+	
+function Arguments1()
+	; Number of Arguments for Potentiostatic EIS
+	args = VectorNew(11)
+
+	; Create the argument list for Potentiostatic EIS
+	args[0] = LABEL.New ("TITLE", 128, "Potentiostatic EIS", "Test Identifier")
+	args[1] = OUTPUT.New ("OUTPUT", "EISPOT.DTA", "Output File")
+	args[2] = NOTES.New ("NOTES", 0, "", "Notes...")
+	args[3] = POTEN.New ("VDC", 0.0, TRUE, "DC Voltage (V)")
+	args[4] = QUANT.New ("FREQINIT", 1000000.0, "Initial Freq. (Hz)")
+	args[5] = QUANT.New ("FREQFINAL", 1.0, "Final Freq. (Hz)")
+	args[6] = QUANT.New ("PTSPERDEC", 10.0, "Points/decade")
+	args[7] = QUANT.New ("VAC", 70.0, "AC Voltage (mV rms)")
+	args[8] = QUANT.New ("AREA", 1.0, "Sample Area (cm^2)")
+	args[9] = QUANT.New ("ZGUESS", 100.0, "Estimated Z (ohms)")
+	selectvector = VectorNew (3)
+	selectvector[0] = "Fast"
+	selectvector[1] = "Normal"
+	selectvector[2] = "Low Noise"
+	args[10] = SELECTOR.New ("SPEED", selectvector, 0, "Optimize for:")
+	
+	args
+	return
+	
+function Arguments2()
+	; Number of Arguments for Set INI Flag
+	args = VectorNew(4)
+
+	; Create the argument list for Set INI Flag
+	args[0] = LABEL.New ("INIFILE", 128, "UTDALLAS.INI", "INI File Name")
+	args[1] = LABEL.New ("INISECTION", 128, "FLAGSECTION", "INI Section Name")
+	args[2] = LABEL.New ("FLAGNAME", 128, "FLAG1", "INI Flag Name")
+	args[3] = LABEL.New ("FLAGVALUE", 128, "DONE", "INI Flag Value")
+	
+	args
+	return
+	

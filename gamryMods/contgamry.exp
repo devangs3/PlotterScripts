@@ -1,0 +1,55 @@
+; Gamry Sequence Wizard Generated Script
+
+; Standard Includes
+include "sequencer.exp"
+
+; Sequence Required Includes
+include "sequencerEISMON.exp"
+
+function Main(argv)
+
+	; Initialize the sequencer
+	Sequencer = SEQUENCER.New(argv)
+
+	; Create experiment object vector
+	expt = VectorNew(1)
+
+	; Create Single Frequency EIS object
+	expt[0] = EISMON.New (Arguments0())
+
+	; Check output filenames and run-time parameters
+	Sequencer.ParameterCheck (expt)
+
+	; Display the sequence steps in the Stdout window
+	Sequencer.DisplaySequence (expt)
+
+	; Run The Sequence
+	Sequencer.Run (expt)
+
+	; Clean Up and Close
+	Sequencer.Close ()
+
+function Arguments0()
+	; Number of Arguments for Single Frequency EIS
+	args = VectorNew(11)
+
+	; Create the argument list for Single Frequency EIS
+	args[0] = LABEL.New ("TITLE", 128, "EIS Monitor", "Test Identifier")
+	args[1] = OUTPUT.New ("OUTPUT", "EISMON.DTA", "Output File")
+	args[2] = NOTES.New ("NOTES", 0, "", "Notes...")
+	args[3] = QUANT.New ("FREQUENCY", 100.0, "Frequency (Hz)")
+	args[4] = POTEN.New ("VDC", 0.0, FALSE, "DC Voltage (V)")
+	args[5] = QUANT.New ("VAC", 70.0, "AC Voltage (mV rms)")
+	args[6] = QUANT.New ("REPTIME", 0.1, "Repeat Time (min)")
+	args[7] = QUANT.New ("TOTTIME", 300.0, "Total Time (hr)")
+	args[8] = QUANT.New ("AREA", 1.0, "Sample Area (cm^2)")
+	args[9] = QUANT.New ("ZGUESS", 100.0, "Estimated Z (ohms)")
+	selectvector = VectorNew (3)
+	selectvector[0] = "Fast"
+	selectvector[1] = "Normal"
+	selectvector[2] = "Low Noise"
+	args[10] = SELECTOR.New ("SPEED", selectvector, 0, "Optimize for:")
+	
+	args
+	return
+	

@@ -71,7 +71,7 @@ namespace Gamry2Chamber
                 "TCN","run","timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
             new string[] { "userField", "moduleField", "batchField", "replicateField", "pinsField", "tspText", "rhspText",
                 "tpvText", "rhpvText","tcnField","","","","","","","" },
-            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
+            "('{0}','{1}','{2}','{3}','{4}',{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})",
             "scangamry.exp");
 
         dataBlock contBlock = new dataBlock("continuous",
@@ -79,7 +79,7 @@ namespace Gamry2Chamber
                 "timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
             new string[] { "userField", "moduleField", "batchField", "replicateField", "pinsField",  "tspText",  "rhspText",
                  "tpvText", "rhpvText","","","","","","" },
-            "('{0}','{1}','{2}','{3}',{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14})",
+            "('{0}','{1}','{2}','{3}','{4}',{5},{6},{7},{8},{9},{10},{11},{12},{13},{14})",
             "contgamry.exp");
 
         // DLL inserts for controlling Gamry Framework ////////////////
