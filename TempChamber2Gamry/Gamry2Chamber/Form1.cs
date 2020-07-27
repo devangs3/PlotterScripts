@@ -67,7 +67,7 @@ namespace Gamry2Chamber
              "('{0}',{1},{2},{3},{4},{5})",
             "");
         dataBlock scanBlock = new dataBlock("scan",
-            new string[] { "operator","module","batch","replicate","TSP","RHSP","TPV","RHPV",
+            new string[] { "operator","module","batch","replicate","pins","TSP","RHSP","TPV","RHPV",
                 "TCN","run","timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
             new string[] { "userField", "moduleField", "batchField", "replicateField", "pinsField", "tspText", "rhspText",
                 "tpvText", "rhpvText","tcnField","","","","","","","" },
@@ -75,7 +75,7 @@ namespace Gamry2Chamber
             "scangamry.exp");
 
         dataBlock contBlock = new dataBlock("continuous",
-            new string[] { "operator","module","batch","replicate","TSP","RHSP","TPV","RHPV",
+            new string[] { "operator","module","batch","replicate","pins","TSP","RHSP","TPV","RHPV",
                 "timestamp","frequency","Zmod","Zphase","Zreal","Zimag" },
             new string[] { "userField", "moduleField", "batchField", "replicateField", "pinsField",  "tspText",  "rhspText",
                  "tpvText", "rhpvText","","","","","","" },
@@ -842,7 +842,7 @@ namespace Gamry2Chamber
                     // stating its sleeping 
                     Console.WriteLine("Waiting for Gamry to finish scan ...") ;
                     // wait 
-                    Thread.Sleep(5000);
+                    Thread.Sleep(1000);
                     // try flag read 
                     flagValue = readINI(iniPath, "FLAGSECTION", "FLAG1");
                     // continue regular processes
