@@ -558,6 +558,7 @@ namespace Gamry2Chamber
             moduleField.Enabled = v;
             batchField.Enabled = v;
             replicateField.Enabled = v;
+            pinsField.Enabled = v;
 
             tcnField.Enabled = v;
             tsField.Enabled = v;
@@ -597,6 +598,7 @@ namespace Gamry2Chamber
                     moduleField.Text + "_" +
                     batchField.Text + "_" +
                     replicateField.Text + "_" + 
+                    pinsField.Text + "_" +
                     file2look.Substring(file2look.Length-3) + "_" + // keep half of identifier string (EISXXX -> XXX) to prevent overwriting 
                     Convert.ToString(tcnField.Value)
                     ));
