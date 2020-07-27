@@ -890,6 +890,9 @@ namespace Gamry2Chamber
         private string readINI(string filepath, string section, string varname)
         {
             var parser = new FileIniDataParser();
+            // wait till file is unlocked
+            Console.WriteLine("Checking for INI file to be unlocked ...");
+            while (IsFileLocked(new FileInfo(filepath))) ;
             IniData data = parser.ReadFile(filepath);
             return data[section][varname];
         }

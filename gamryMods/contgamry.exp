@@ -4,6 +4,7 @@
 include "sequencer.exp"
 
 ; Sequence Required Includes
+include "sequencerGROUPDATAFILESINI.exp"
 include "sequencerEISMON.exp"
 
 function Main(argv)
@@ -12,10 +13,13 @@ function Main(argv)
 	Sequencer = SEQUENCER.New(argv)
 
 	; Create experiment object vector
-	expt = VectorNew(1)
+	expt = VectorNew(2)
+
+	; Create Group Data Files using INI object
+	expt[0] = GROUPDATAFILESINI.New (Arguments0())
 
 	; Create Single Frequency EIS object
-	expt[0] = EISMON.New (Arguments0())
+	expt[1] = EISMON.New (Arguments1())
 
 	; Check output filenames and run-time parameters
 	Sequencer.ParameterCheck (expt)
@@ -30,6 +34,17 @@ function Main(argv)
 	Sequencer.Close ()
 
 function Arguments0()
+	; Number of Arguments for Group Data Files using INI
+	args = VectorNew(2)
+
+	; Create the argument list for Group Data Files using INI
+	args[0] = LABEL.New ("INIFILE", 128, "GAMRY.INI", "INI File Name")
+	args[1] = LABEL.New ("INISECTION", 128, "GROUPING1", "INI Section Name")
+	
+	args
+	return
+	
+function Arguments1()
 	; Number of Arguments for Single Frequency EIS
 	args = VectorNew(11)
 
