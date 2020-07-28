@@ -396,7 +396,7 @@ namespace Gamry2Chamber
                 writeINI(iniPath, "FLAGSECTION", "FLAG1", "READY");
 
                 // change setpoint based on previous setpoint 
-                if (Convert.ToInt32(tspText.Text) == LoPt.Value)
+                if (Convert.ToDouble(tspText.Text) == Convert.ToDouble(LoPt.Value))
                 {
                     newTSP = Convert.ToInt32(HiPt.Value);
                     oldTSP = Convert.ToInt32(LoPt.Value);
@@ -490,7 +490,8 @@ namespace Gamry2Chamber
             timer1.Enabled = false;
             // cancel grey out process parameters
             enableAll(true);
-
+            // kill gamry
+            KillGamry();
         }
 
         private void button2_Click(object sender, EventArgs e)

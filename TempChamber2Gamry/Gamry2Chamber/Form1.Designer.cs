@@ -462,10 +462,10 @@ namespace Gamry2Chamber
             this.LoPt.Size = new System.Drawing.Size(93, 47);
             this.LoPt.TabIndex = 6;
             this.LoPt.Value = new decimal(new int[] {
-            20,
+            50,
             0,
             0,
-            0});
+            -2147483648});
             this.LoPt.ValueChanged += new System.EventHandler(this.LoPt_ValueChanged);
             // 
             // label14
@@ -496,7 +496,7 @@ namespace Gamry2Chamber
             this.HiPt.Size = new System.Drawing.Size(93, 47);
             this.HiPt.TabIndex = 6;
             this.HiPt.Value = new decimal(new int[] {
-            50,
+            150,
             0,
             0,
             0});
