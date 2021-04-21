@@ -1,0 +1,23 @@
+SCRIPT_REAL("
+# note: set worksheet view to non-aggregate
+import numpy as np;
+import pandas as pd;
+from scipy import stats;
+input = pd.DataFrame({'Z':_arg1, 'category':_arg2});
+types = np.unique(input['category']);
+print(types)
+print(input)
+if len(types) != 2:
+    return 1;
+else:
+    df2 = input[input['category'] == types[0]];
+    df3 = input[input['category'] == types[1]];
+    # if len(df2) != len(df3):
+        # output = stats.ttest_ind( df2['Z'], df3['Z'], equal_var = False);
+        # print('Zm computing unequal lengths')
+    # else:
+    output = stats.ttest_ind( df2['Z'], df3['Z']);
+    print(output)
+    return output[1];       
+",
+sum([Zmod]),attr([TCN]))
