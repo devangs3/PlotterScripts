@@ -15,8 +15,7 @@ initial_guess = [500, .01, 100, .01, .05]
 circuit = CustomCircuit(circuit, initial_guess=initial_guess)
 circuit.fit(frequencies, Z)
 
-
-randles = Randles(initial_guess=[.01, .005, .1, .9, .001, 200], CPE=True)
+randles = Randles(initial_guess=[7e3, 7e3, 2e-6, .5, 6e3, 2e-6], CPE=True)
 randles.fit(frequencies, Z)
 
 Z_fit = circuit.predict(frequencies)
@@ -40,3 +39,4 @@ plt.show()
 print(randles)
 # print(frequencies)
 # print(Z)
+# print(type(str(randles)))

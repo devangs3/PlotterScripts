@@ -1,23 +1,34 @@
-SCRIPT_REAL("
+SCRIPT_STR("
 # note: set worksheet view to non-aggregate
 import numpy as np;
 import pandas as pd;
-from scipy import stats;
-input = pd.DataFrame({'Z':_arg1, 'category':_arg2});
-types = np.unique(input['category']);
-print(types)
-print(input)
-if len(types) != 2:
-    return 1;
-else:
-    df2 = input[input['category'] == types[0]];
-    df3 = input[input['category'] == types[1]];
-    # if len(df2) != len(df3):
-        # output = stats.ttest_ind( df2['Z'], df3['Z'], equal_var = False);
-        # print('Zm computing unequal lengths')
-    # else:
-    output = stats.ttest_ind( df2['Z'], df3['Z']);
-    print(output)
-    return output[1];       
+from impedance import preprocessing
+from impedance.models.circuits import Randles, CustomCircuit
+
+input = pd.DataFrame({'Zr':_arg1, 'Zi':_arg2, 'f':_arg3});
+column = input.loc[:,'Zr']
+Zr = column.values
+column = input.loc[:,'Zi']
+Zi = column.values
+
+Z = Zr + 1j*Zi
+
+column = input.loc[:,'f']
+f = column.values
+print('zn= '+str(len(Z)))
+print('fn= '+str(len(f)))
+
+# Load data from the example EIS result
+# frequencies, Z = preprocessing.readGamry('1618940354_SWR90456_S1_C1_9_12_POT_659.5_#5.dta')
+
+# keep only the impedance data in the first quadrant
+f, Z = preprocessing.ignoreBelowX(f, Z)
+
+randles = Randles(initial_guess=[7e3, 7e3, 2e-6, .5, 6e3, 2e-6], CPE=True)
+randles.fit(f, Z)
+    	
+print(randles)
+return(str(randles));       
 ",
-sum([Zmod]),attr([TCN]))
+sum([Zreal]),sum([Zimag]),sum([Frequency])
+)
