@@ -2,6 +2,7 @@ from impedance import preprocessing
 from impedance.models.circuits import Randles, CustomCircuit
 import matplotlib.pyplot as plt
 from impedance.visualization import plot_nyquist, plot_bode
+import re
 
 # Load data from the example EIS result
 frequencies, Z = preprocessing.readGamry('1618940354_SWR90456_S1_C1_9_12_POT_659.5_#5.dta')
@@ -41,8 +42,19 @@ plot_bode(ax, frequencies, Z_fit, fmt='-')
 plt.legend(['Data', 'Fit'])
 plt.show()
 
-
 print(circuit)
 # print(frequencies)
 # print(Z)
-print(type(str(circuit)))
+# print(type(str(circuit)))
+
+# csv of circuit elements
+a = str(circuit)
+a = a.split(':')[-1]
+# a = a.replace('=',',')
+# a = a.replace('\n',',')
+results = re.findall('= (.*?) \(', a)
+# results = re.findall('?<=\(=).*(?=\)', a)
+b = ''
+for result in results:
+    b = b +  result + ','
+print(b)
